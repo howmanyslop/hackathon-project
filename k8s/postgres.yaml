@@ -19,6 +19,7 @@ spec:
       labels:
         app.kubernetes.io/name: postgres
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: postgres
           env:
@@ -32,6 +33,12 @@ spec:
                   name: web-postgres
                   key: password
           image: postgres:18-alpine
+          livenessProbe:
+            exec:
+              command: [pg_isready, --username=web, --dbname=web]
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
           ports:
             - name: postgres
               containerPort: 5432
@@ -41,10 +48,15 @@ spec:
             periodSeconds: 5
           resources:
             limits:
+              cpu: "1"
               memory: 512Mi
             requests:
               cpu: 100m
               memory: 256Mi
+          # The image starts as root and drops to the postgres user itself, so
+          # it keeps its default capabilities; only privilege escalation is off.
+          securityContext:
+            allowPrivilegeEscalation: false
           volumeMounts:
             # Postgres 18 images keep data under /var/lib/postgresql/18.
             - name: data
