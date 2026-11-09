@@ -17,7 +17,8 @@ export interface AnsweredViewProperties {
 
 /**
  * The "Asked and answered" figure: a short welcome before a search, then the
- * matching pairs, or a kind word when there are none.
+ * matching pairs, the nearest ones when none match closely, or a kind word
+ * when the archive has none at all.
  *
  * @param properties - The search state.
  * @returns The figure's content.
@@ -37,6 +38,17 @@ export function AnsweredView({
 
 	if (results !== undefined && query.length > 0) {
 		if (results.pairs.length > 0) return <PairHitList pairs={results.pairs} />;
+
+		if (results.nearestPairs.length > 0) {
+			return (
+				<>
+					<p className="caption">
+						{`Nothing in the archive matches “${query}” closely. These are the nearest questions people asked, in case one of them is yours.`}
+					</p>
+					<PairHitList pairs={results.nearestPairs} />
+				</>
+			);
+		}
 
 		return (
 			<p className="caption">

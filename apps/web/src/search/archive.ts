@@ -257,12 +257,21 @@ const MAXIMUM_PAIRS = 6;
 /** The most passages one search shows; past six they repeat each other. */
 const MAXIMUM_PASSAGES = 6;
 
+/** How many near misses to show when no answered question matched closely. */
+const NEAREST_PAIRS = 3;
+
 /**
- * The lowest score each kind of hit needs. A meaning search always returns
- * its nearest documents, however unrelated, so without a floor "where can I
- * park" would list answered questions. Scores run from 0.5 (unrelated) to 1
- * (same meaning). Measured on the four sample talks with 15 reworded real
- * questions and 9 unrelated ones (lunch, parking, wifi password, and so on).
+ * The score that counts as a close match. A meaning search always returns
+ * its nearest documents, however unrelated, so without a line "where can I
+ * park" would list answered questions as if they matched. Scores run from
+ * 0.5 (unrelated) to 1 (same meaning). Measured on the four sample talks
+ * with 15 reworded real questions and 9 unrelated ones (lunch, parking, wifi
+ * password, and so on).
+ *
+ * For answered questions the line only labels: hits under it are still
+ * returned as "nearest", never hidden, because it was measured on typed
+ * text and a phone's speech-to-text may score lower. Passages under their
+ * line are left out.
  */
 const MINIMUM_SCORES: Readonly<Record<ArchiveDocumentKind, number>> = {
 	// Every reworded question found its pair at 0.645 or more ("what happens
@@ -285,7 +294,8 @@ async function searchKindAsync(
 	const response = await client.search<ArchiveDocument>({
 		_source: SOURCE_FIELDS,
 		index: getArchiveIndex(),
-		min_score: MINIMUM_SCORES[kind],
+		// Answered questions are sorted into close and nearest afterwards.
+		min_score: kind === "segment" ? MINIMUM_SCORES.segment : undefined,
 		query: { bool: { filter: [{ term: { kind } }], must: [{ match: { content: query } }] } },
 		size: limit,
 	});
@@ -301,7 +311,8 @@ async function searchKindAsync(
  *
  * @param query - What to look for, in plain language.
  * @param limit - The most results of each kind to return, six at most.
- * @returns The best matches first, or `undefined` when search is off.
+ * @returns The close matches first; when no answered question is close, the
+ *   nearest few instead. `undefined` when search is off.
  */
 export async function searchArchiveAsync(
 	query: string,
@@ -315,7 +326,7 @@ export async function searchArchiveAsync(
 		searchKindAsync(client, "segment", query, Math.min(limit, MAXIMUM_PASSAGES)),
 	]);
 
-	const pairs = pairHits.map(({ document, score }): PairHit => ({
+	const scoredPairs = pairHits.map(({ document, score }): PairHit => ({
 		answer: document.answer ?? "",
 		question: document.question ?? "",
 		score,
@@ -333,7 +344,10 @@ export async function searchArchiveAsync(
 		text: document.text,
 	}));
 
-	return { pairs, passages };
+	const pairs = scoredPairs.filter((pair) => pair.score >= MINIMUM_SCORES.pair);
+	const nearestPairs = pairs.length === 0 ? scoredPairs.slice(0, NEAREST_PAIRS) : [];
+
+	return { nearestPairs, pairs, passages };
 }
 
 /**

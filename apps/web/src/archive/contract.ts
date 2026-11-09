@@ -75,6 +75,12 @@ export interface PassageHit {
 
 /** Search results: answered questions first, then passages from the talks. */
 export interface ArchiveSearchResults {
+	/**
+	 * The closest answered questions when none matched closely, so a search
+	 * never comes back empty just because a score fell under the line. Empty
+	 * whenever `pairs` has anything.
+	 */
+	readonly nearestPairs: ReadonlyArray<PairHit>;
 	readonly pairs: ReadonlyArray<PairHit>;
 	readonly passages: ReadonlyArray<PassageHit>;
 }
