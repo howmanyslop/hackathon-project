@@ -12,9 +12,20 @@ export default defineConfig({
 				name: "web",
 			}),
 		},
+		// Logs and traces also export to Dash0 over OTLP. Each destination name
+		// must match an account-level destination in the Cloudflare dashboard
+		// (Observability > Destinations).
 		observability: {
 			enabled: true,
+			logs: {
+				destinations: ["dash0-logs"],
+				enabled: true,
+			},
 			redactQueryString: true,
+			traces: {
+				destinations: ["dash0-traces"],
+				enabled: true,
+			},
 		},
 	},
 });
