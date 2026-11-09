@@ -94,8 +94,10 @@ catalogs:
     "@commitlint/config-conventional": 21.2.4
     "@commitlint/types": 21.2.3
   database:
+    "@types/pg": 8.23.1
     drizzle-kit: 0.31.11
     drizzle-orm: 0.45.4
+    pg: 8.23.1
   frontend:
     "@base-ui/react": 1.9.0
     class-variance-authority: 0.7.1
@@ -235,6 +237,12 @@ packageExtensions:
   "@tanstack/react-form@1.33.5":
     dependencies:
       "@types/react": 19.3.0
+  # drizzle-kit imports drizzle-orm and pg at runtime without declaring them, so
+  # the global virtual store hides them. As peers, they resolve to the app's.
+  drizzle-kit:
+    peerDependencies:
+      drizzle-orm: "*"
+      pg: "*"
   storybook@10:
     dependencies:
       "@storybook/react-vite": 10.6.1

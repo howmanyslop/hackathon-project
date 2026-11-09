@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { orpc } from "#/orpc/client";
+import { orpc } from "$orpc/client";
 
 import type { ReactNode } from "react";
 

@@ -1,17 +1,13 @@
-import { env as environment } from "node:process";
+import { env } from "node:process";
 import { defineConfig } from "drizzle-kit";
 
-// mise loads the root `.env`. `db:generate` only needs the schema; the
-// credentials are for `db:studio` and `db:pull` against the remote D1
-// database. Migrations are applied with `cf d1 migrations apply`.
+// mise loads the root `.env`, which sets `DATABASE_URL`. `db:generate` only
+// needs the schema; `db:migrate` and `db:studio` connect to the database.
 const configuration = defineConfig({
 	dbCredentials: {
-		accountId: environment.CLOUDFLARE_ACCOUNT_ID ?? "",
-		databaseId: environment.CLOUDFLARE_DATABASE_ID ?? "",
-		token: environment.CLOUDFLARE_D1_TOKEN ?? "",
+		url: env.DATABASE_URL ?? "",
 	},
-	dialect: "sqlite",
-	driver: "d1-http",
+	dialect: "postgresql",
 	out: "./drizzle",
 	schema: "./src/db/schema.ts",
 });

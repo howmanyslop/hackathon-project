@@ -71,7 +71,7 @@ Do not hand-edit generated code (`*.gen.ts`, `.cloudflare/`, `src/components/ui/
 
 ## Architecture (`apps/web/src`)
 
-Imports use the `#/*` subpath alias for `src/*`.
+Imports across `src` folders use one `$` alias per top-level folder (`$components/*`, `$db/*`, `$orpc/*`, and so on), set in `apps/web/tsconfig.json`.
 
 - `routes/` is TanStack Router file-based routing. `routeTree.gen.ts` is generated.
 - `server.ts` is the Worker entry: TanStack Start's handler plus security headers and a Content Security Policy. Add a `scheduled` handler here for cron triggers.

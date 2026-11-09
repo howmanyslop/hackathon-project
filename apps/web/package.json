@@ -4,13 +4,11 @@
 	"private": true,
 	"description": "The app.",
 	"type": "module",
-	"imports": {
-		"#/*": "./src/*"
-	},
 	"scripts": {
 		"build": "vp build",
 		"build-storybook": "storybook build",
 		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
 		"db:pull": "drizzle-kit pull",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
@@ -42,6 +40,7 @@
 		"cn": "catalog:frontend",
 		"drizzle-kit": "catalog:database",
 		"drizzle-orm": "catalog:database",
+		"pg": "catalog:database",
 		"react": "catalog:frontend",
 		"react-dom": "catalog:frontend",
 		"tailwindcss": "catalog:frontend",
@@ -58,6 +57,7 @@
 		"@tailwindcss/typography": "catalog:web",
 		"@tanstack/devtools-vite": "catalog:tanstack",
 		"@types/node": "catalog:node26",
+		"@types/pg": "catalog:database",
 		"@types/react": "catalog:types",
 		"@types/react-dom": "catalog:types",
 		"@vitejs/plugin-react": "catalog:vite",
