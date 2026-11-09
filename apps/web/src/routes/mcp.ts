@@ -5,6 +5,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { createMcpTransport } from "$mcp/create-server";
+import { isBodyTooLarge } from "$server/body-limit";
 import { isCsrfSafeRequest } from "$server/csrf";
 import { createRateLimiter } from "$server/rate-limit";
 
@@ -25,9 +26,7 @@ async function handleAsync({ request }: HandleAsyncOptions): Promise<Response> {
 	// A page on another site must not drive this endpoint from a browser.
 	if (!isCsrfSafeRequest(request)) return new Response("Forbidden", { status: 403 });
 
-	if (Number(request.headers.get("content-length")) > 1_000_000) {
-		return new Response("Payload too large", { status: 413 });
-	}
+	if (isBodyTooLarge(request)) return new Response("Payload too large", { status: 413 });
 
 	if (!isCallAllowed(request.headers.get("cf-connecting-ip") ?? "this-server")) {
 		return new Response("Too many requests", { status: 429 });

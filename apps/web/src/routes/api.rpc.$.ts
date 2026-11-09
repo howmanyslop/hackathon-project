@@ -3,6 +3,7 @@ import { SimpleCsrfProtectionHandlerPlugin } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
 
 import router from "$orpc/router";
+import { isBodyTooLarge } from "$server/body-limit";
 import { isCsrfSafeRequest } from "$server/csrf";
 
 const rpcHandler = new RPCHandler(router, {
@@ -18,13 +19,9 @@ async function handleAsync({ request }: HandleAsyncOptions): Promise<Response> {
 	// proves the request came from this origin.
 	if (!isCsrfSafeRequest(request)) return new Response("Forbidden", { status: 403 });
 
-	// The largest real call, a batch of 100 segments, is a few hundred KB, so
-	// a body announced as over 1 MB is refused before it is read. oRPC's own
-	// body-limit plugin isn't used: it rebuilds the request, which the
-	// production server's request object doesn't survive.
-	if (Number(request.headers.get("content-length")) > 1_000_000) {
-		return new Response("Payload too large", { status: 413 });
-	}
+	// oRPC's own body-limit plugin isn't used: it rebuilds the request, which
+	// the production server's request object doesn't survive.
+	if (isBodyTooLarge(request)) return new Response("Payload too large", { status: 413 });
 
 	const { response } = await rpcHandler.handle(request, {
 		// Cloudflare's tunnel sets this to the visitor's address.
