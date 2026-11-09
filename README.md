@@ -2,7 +2,7 @@
 
 The Q&A at the end of a talk is often the best part, and it's gone the moment the talk ends. Asked & Answered keeps it. The presenter's phone turns the talk into text as they speak. The app splits the Q&A part into question-and-answer pairs, and everything lands in one archive you can search by meaning. During the conference, attendees can check whether their question was already asked. Afterward, people and their AI agents can search every session and jump to the passage.
 
-Only text reaches the server. Speech-to-text runs on the phone, and no audio or video is stored.
+Only text reaches the server. The phone's browser does the speech-to-text (Chrome uses Google's speech service for it), and no audio or video is stored.
 
 ## Pages
 
@@ -11,8 +11,11 @@ Only text reaches the server. Speech-to-text runs on the phone, and no audio or 
 | `/`              | The archive: search, the Ask box, the hourly "what people are asking" note, and counts.        |
 | `/sessions`      | Every session, newest first.                                                                    |
 | `/sessions/$id`  | One session: its pairs and transcript. `?t=<seconds>` jumps to a passage.                       |
+| `/questions`     | What attendees typed into the archive, unanswered ones first. Needs the presenter code.         |
 | `/record`        | The presenter's recorder, for a phone. Needs the presenter code.                                |
 | `/mcp`           | A read-only MCP endpoint for AI agents (not a page).                                            |
+
+Every question typed into the search field or the Ask box is saved to the `question_log` table with no name attached, along with whether the archive already had an answered question for it. Presenters open Questions with the presenter code to see what people want to know, with the unanswered ones set apart, so they can cover those in their talk. It needs the code because strangers write that text, and it is never shown on a public page.
 
 ## Run It Locally
 
@@ -39,7 +42,7 @@ Put these in `.env` for local work. `mise run k8s:deploy` copies the Elastic, Ki
 | `ELASTICSEARCH_DIGEST_INDEX`   | `asked-digest`                                | Where the hourly note is written.                                     |
 | `ELASTIC_LLM_INFERENCE_ID`     | `.anthropic-claude-5-sonnet-chat_completion`  | Elastic's LLM, tried first for the split. It answers 403 here today.  |
 | `ELASTIC_AGENT_ID`             | `asked-and-answered`                          | The Agent Builder agent behind the Ask box.                           |
-| `ASK_BUDGET_USD`               | `20`                                          | The most the Ask box may spend on the agent. `0` turns it off.        |
+| `ASK_BUDGET_USD`               | `15`                                          | The most the Ask box may spend on the agent. `0` turns it off.        |
 | `ASK_COST_ESTIMATE_USD`        | `0.10`                                        | Cost logged per question when the agent reports no token usage.      |
 | `OPENROUTER_API_KEY`           | none (optional)                               | The LLM that splits the Q&A when Elastic's fails, which it does now.  |
 | `OPENROUTER_MODEL`             | `anthropic/claude-haiku-5.5`                  | The OpenRouter model.                                                 |
@@ -52,7 +55,7 @@ Each question in the Ask box goes to a paid Elastic agent. The app writes every 
 - More than 10 questions in a minute: "The archive is answering a lot of questions right now. Try again in a minute."
 - Once the logged cost reaches `ASK_BUDGET_USD`: "The Ask box has used its budget for now. Search still works."
 
-The cost of a question comes from the token usage the agent reports, priced at $6 per million input tokens and $30 per million output tokens, about twice the list price of its model. When it reports none, the question costs `ASK_COST_ESTIMATE_USD`.
+The cost of a question comes from the token usage the agent reports, priced at $6 per million input tokens and $30 per million output tokens, about twice the list price of its model. When it reports none, the question costs `ASK_COST_ESTIMATE_USD`. The $15 default plus the digest workflow's own cap (at most 50 paid runs, about $5) keeps the agent under $20 in all.
 
 ## Sample Data and Elastic Setup
 
