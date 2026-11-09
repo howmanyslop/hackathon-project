@@ -46,6 +46,8 @@ This builds the app into a container image, scans it for secrets, pushes it to `
 | `mise run k8s:logs`    | Follows the app's logs. Ctrl+C stops following; the app keeps running.        |
 | `mise run k8s:db`      | Connects `localhost:5432` to the cluster's database, for `db:studio`.         |
 | `mise run k8s:down`    | Deletes the app and its database from the cluster, after asking.              |
+| `mise run dash0:install` | Sends the app's traces, logs, and metrics to Dash0 (see below).             |
+| `mise run dash0:down`  | Removes Dash0 from the cluster.                                               |
 
 ### Words You'll See
 
@@ -63,6 +65,40 @@ The images on `ghcr.io` are public, and so is this repository. Never put a passw
 - `kubectl` says "connection refused" or times out: Tailscale is off, or `~/.kube/hackathon.yaml` is missing.
 - `k8s:deploy` says the cluster can't download the image: the `ghcr.io` package went private. Make it public again in its GitHub package settings.
 - The site shows "no available server": the app pods aren't ready. `mise run k8s:status` and `mise run k8s:logs` show why.
+
+## Hackathon Services
+
+| Service                | What It Does Here                                                          | State                                         |
+| ---------------------- | -------------------------------------------------------------------------- | --------------------------------------------- |
+| Radar                  | Shows the cluster in a browser and lets agents inspect it over MCP.        | Agent runs in the `radar` namespace.          |
+| Elastic                | Semantic search over the todos, embedded by Jina.                          | Needs keys in `.env`.                         |
+| Dash0                  | Traces, logs, and metrics for the app.                                     | Needs keys in `.env`, then `dash0:install`.   |
+| Gitar (Sonar)          | Reviews every pull request. `.gitar/review/project.md` says what to check. | Installed on the GitHub organization.         |
+
+### Radar
+
+The cluster is already connected. To use it:
+
+1. Sign in at <https://app.radarhq.io> and accept the team invite.
+2. `.mcp.json` and `opencode.jsonc` list the `radar-cloud` MCP server. Sign in to it once: in Claude Code, run `/mcp`, pick `radar-cloud`, and choose Authenticate; in OpenCode, run `opencode mcp auth radar-cloud`.
+
+### Elastic
+
+1. Sign up at <https://ela.st/hack-kubecon> and create an **Elasticsearch** project ("Build AI and semantic search").
+2. On the project's page, copy the Elasticsearch endpoint and create an API key. Put them in `.env` as `ELASTICSEARCH_URL` and `ELASTICSEARCH_API_KEY`, and set `ELASTICSEARCH_TODO_INDEX` to `todos-dev-<your name>` so your laptop doesn't overwrite the cluster's todos.
+3. `mise run k8s:deploy` copies the keys into the cluster's `web-elastic` Secret.
+
+When the app starts with these set, it creates a Jina inference endpoint (`jina-embeddings-v3` on the Elastic Inference Service) and the todo index. If the index is new, it copies every todo into it. After that, `addTodo` indexes each new todo, and the search box on the home page calls `searchTodos`. Postgres stays the source of truth. Without the keys, the app runs as before and search reports that it isn't set up.
+
+Agent Builder and Workflows live in Kibana, so build them there once the data model settles.
+
+### Dash0
+
+1. Sign up at <https://www.dash0.com/sign-up?utm_source=wemakedevs>.
+2. Put the OTLP via gRPC endpoint, the API endpoint, and an auth token in `.env` (`DASH0_ENDPOINT`, `DASH0_API_ENDPOINT`, `DASH0_AUTH_TOKEN`). `.env.example` says where each one is.
+3. One person runs `mise run dash0:install`.
+
+That installs the Dash0 operator into `dash0-system` and monitors only the `web` namespace. The operator adds OpenTelemetry to the app's pods when they start, so the app has no tracing code of its own. The app's pods restart once. `mise run dash0:down` removes it all again.
 
 ## Keep the Template Current
 

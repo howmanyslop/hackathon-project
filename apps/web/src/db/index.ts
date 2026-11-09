@@ -5,10 +5,10 @@ import { drizzle } from "drizzle-orm/node-postgres";
 // oxlint-disable-next-line import/no-namespace -- drizzle wants the whole schema module.
 import * as schema from "./schema.ts";
 
-const parseDatabaseEnvironment = type({ DATABASE_URL: "string.url" });
+const isDatabaseEnvironment = type({ DATABASE_URL: "string.url" });
 
 function createDatabase(): ReturnType<typeof drizzle<typeof schema>> {
-	const { DATABASE_URL } = parseDatabaseEnvironment.assert(env);
+	const { DATABASE_URL } = isDatabaseEnvironment.assert(env);
 	return drizzle(DATABASE_URL, { schema });
 }
 

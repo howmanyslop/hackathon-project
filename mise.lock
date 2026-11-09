@@ -278,6 +278,77 @@ checksum = "sha256:8f643d10ad1abb0ef7072764c01ceb5cf61b2d373fda400cf60f0bad69b7e
 url = "https://github.com/fish-shell/fish-shell/releases/download/4.9.3/fish-4.9.3-linux-x86_64.tar.xz"
 url_api = "https://api.github.com/repos/fish-shell/fish-shell/releases/assets/551107873"
 
+[[tools."github:skyhook-io/radar"]]
+version = "1.20.1"
+backend = "github:skyhook-io/radar"
+specifiers = ["latest"]
+
+[tools."github:skyhook-io/radar"."platforms.linux-arm64"]
+checksum = "sha256:e3bb154814c702ac31df3d99163938a347e7b510f32ea947be388323e1519d45"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721627025"
+
+[tools."github:skyhook-io/radar"."platforms.linux-arm64-musl"]
+checksum = "sha256:e3bb154814c702ac31df3d99163938a347e7b510f32ea947be388323e1519d45"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721627025"
+
+[tools."github:skyhook-io/radar"."platforms.linux-x64"]
+checksum = "sha256:c667222c228c147ffc8ab818984e0a0389e3ccf2189aae45954cf0a78e5cc878"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721626950"
+
+[tools."github:skyhook-io/radar"."platforms.linux-x64-baseline"]
+checksum = "sha256:c667222c228c147ffc8ab818984e0a0389e3ccf2189aae45954cf0a78e5cc878"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721626950"
+
+[tools."github:skyhook-io/radar"."platforms.linux-x64-musl"]
+checksum = "sha256:c667222c228c147ffc8ab818984e0a0389e3ccf2189aae45954cf0a78e5cc878"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721626950"
+
+[tools."github:skyhook-io/radar"."platforms.linux-x64-musl-baseline"]
+checksum = "sha256:c667222c228c147ffc8ab818984e0a0389e3ccf2189aae45954cf0a78e5cc878"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721626950"
+
+[tools."github:skyhook-io/radar"."platforms.macos-arm64"]
+checksum = "sha256:0f6f5fb6ae29148abb0af438865afb6f060efc22c8af74bb29df9875319e239a"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721626953"
+
+[tools."github:skyhook-io/radar"."platforms.macos-x64"]
+checksum = "sha256:49854ab1ead6d79419b0b8c39f397810436d8550eca9ed4d621374793bd343ae"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_darwin_amd64.tar.gz"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721626951"
+
+[tools."github:skyhook-io/radar"."platforms.macos-x64-baseline"]
+checksum = "sha256:49854ab1ead6d79419b0b8c39f397810436d8550eca9ed4d621374793bd343ae"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_darwin_amd64.tar.gz"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721626951"
+
+[tools."github:skyhook-io/radar"."platforms.windows-x64"]
+checksum = "sha256:780b0bd6dcf499556a616f49aeefe9d8fb44ef58a2bc90154fa71beb8cb899bf"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_windows_amd64.zip"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721626952"
+
+[tools."github:skyhook-io/radar"."platforms.windows-x64-baseline"]
+checksum = "sha256:780b0bd6dcf499556a616f49aeefe9d8fb44ef58a2bc90154fa71beb8cb899bf"
+checksum_source = "mise-versions"
+url = "https://github.com/skyhook-io/radar/releases/download/v1.20.1/radar_v1.20.1_windows_amd64.zip"
+url_api = "https://api.github.com/repos/skyhook-io/radar/releases/assets/721626952"
+
 [[tools.harper-cli]]
 version = "2.9.1"
 backend = "aqua:Automattic/harper/harper-cli"
@@ -337,6 +408,55 @@ url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/534676
 checksum = "sha256:fa952b3ccc85f088781bf91b664ec565bd2d982e616f854209f239e3da1e85da"
 url = "https://github.com/Automattic/harper/releases/download/v2.9.1/harper-cli-x86_64-pc-windows-msvc.zip"
 url_api = "https://api.github.com/repos/Automattic/harper/releases/assets/534676610"
+
+[[tools.helm]]
+version = "4.3.1"
+backend = "aqua:helm/helm"
+specifiers = ["latest"]
+
+[tools.helm."platforms.linux-arm64"]
+checksum = "sha256:8cf8f66ecbc252ac8f7f06cca68aba88508ddfde3a6a34feb1678ad1694b4f88"
+url = "https://get.helm.sh/helm-v4.3.1-linux-arm64.tar.gz"
+
+[tools.helm."platforms.linux-arm64-musl"]
+checksum = "sha256:8cf8f66ecbc252ac8f7f06cca68aba88508ddfde3a6a34feb1678ad1694b4f88"
+url = "https://get.helm.sh/helm-v4.3.1-linux-arm64.tar.gz"
+
+[tools.helm."platforms.linux-x64"]
+checksum = "sha256:0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b"
+url = "https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz"
+
+[tools.helm."platforms.linux-x64-baseline"]
+checksum = "sha256:0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b"
+url = "https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz"
+
+[tools.helm."platforms.linux-x64-musl"]
+checksum = "sha256:0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b"
+url = "https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz"
+
+[tools.helm."platforms.linux-x64-musl-baseline"]
+checksum = "sha256:0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b"
+url = "https://get.helm.sh/helm-v4.3.1-linux-amd64.tar.gz"
+
+[tools.helm."platforms.macos-arm64"]
+checksum = "sha256:6b4e61c8cd27d99e5a801e63ff25dd5c70b36875c2cd659d3e9ce6b76fc23198"
+url = "https://get.helm.sh/helm-v4.3.1-darwin-arm64.tar.gz"
+
+[tools.helm."platforms.macos-x64"]
+checksum = "sha256:34bec4eba761ba5c16d1965ee6b8f5b0abe5993974a802274e2a4f0418893d89"
+url = "https://get.helm.sh/helm-v4.3.1-darwin-amd64.tar.gz"
+
+[tools.helm."platforms.macos-x64-baseline"]
+checksum = "sha256:34bec4eba761ba5c16d1965ee6b8f5b0abe5993974a802274e2a4f0418893d89"
+url = "https://get.helm.sh/helm-v4.3.1-darwin-amd64.tar.gz"
+
+[tools.helm."platforms.windows-x64"]
+checksum = "sha256:5735a2bd59071b814546c6d0a76f29a8fd3ebe06e3a4791dd2784804ae895f34"
+url = "https://get.helm.sh/helm-v4.3.1-windows-amd64.tar.gz"
+
+[tools.helm."platforms.windows-x64-baseline"]
+checksum = "sha256:5735a2bd59071b814546c6d0a76f29a8fd3ebe06e3a4791dd2784804ae895f34"
+url = "https://get.helm.sh/helm-v4.3.1-windows-amd64.tar.gz"
 
 [[tools.hk]]
 version = "2.11.1"

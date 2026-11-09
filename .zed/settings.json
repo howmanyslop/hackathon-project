@@ -474,7 +474,8 @@
 							"lefthook.json",
 							".lefthook.json"
 						],
-						"kubernetes": ["k8s/*.yaml", "!k8s/kustomization.yaml"]
+						// Dash0Monitoring is an operator CRD with no public schema, so leave k8s/dash0 unvalidated.
+						"kubernetes": ["k8s/**/*.yaml", "!k8s/kustomization.yaml", "!k8s/dash0/**"]
 					}
 				}
 			}

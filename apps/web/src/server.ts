@@ -1,6 +1,7 @@
 import handler from "@tanstack/react-start/server-entry";
 
 import { migrateDatabaseAsync } from "$db/migrate";
+import { setUpTodoSearchAsync } from "$search/todos";
 
 const SECURITY_HEADERS = {
 	"Referrer-Policy": "strict-origin-when-cross-origin",
@@ -56,6 +57,26 @@ function addSecurityHeaders(response: Response): Response {
 // If it fails, Node exits on the unhandled rejection (or requests fail until
 // the liveness check gives up), and Kubernetes restarts the pod to retry.
 const migration = migrateDatabaseAsync();
+
+/**
+ * Search setup needs the migrated table for its backfill, but requests don't
+ * wait for it: the app works without Elasticsearch, and a failure here only
+ * turns search off until the next restart. Only search errors are caught, so a
+ * failed migration still ends the process as described above.
+ */
+async function setUpSearchAfterMigrationAsync(): Promise<void> {
+	await migration;
+
+	try {
+		console.info(await setUpTodoSearchAsync());
+	} catch (error) {
+		console.error("Search setup failed; searches will fail until the app restarts:", error);
+	}
+}
+
+// Top-level await would hold up server startup on Elasticsearch.
+// oxlint-disable-next-line no-void, unicorn/prefer-top-level-await -- void is fine.
+void setUpSearchAfterMigrationAsync();
 
 /**
  * The server's entry: TanStack Start answers every request, and each response

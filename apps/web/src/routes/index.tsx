@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { TodoList } from "$components/todo-list";
+import { TodoSearch } from "$components/todo-search";
 
 import type { ReactNode } from "react";
 
@@ -14,6 +15,7 @@ function Home(): ReactNode {
 				{" to get started."}
 			</p>
 			<TodoList />
+			<TodoSearch />
 		</main>
 	);
 }
