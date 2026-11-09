@@ -62,6 +62,16 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
+      # Replace copies on a dead machine after 15 seconds instead of 5 minutes.
+      tolerations:
+        - effect: NoExecute
+          key: node.kubernetes.io/unreachable
+          operator: Exists
+          tolerationSeconds: 15
+        - effect: NoExecute
+          key: node.kubernetes.io/not-ready
+          operator: Exists
+          tolerationSeconds: 15
       # Never put two copies on one machine while another is free, so losing one
       # machine leaves at least two copies running.
       topologySpreadConstraints:
@@ -71,16 +81,6 @@ spec:
           maxSkew: 1
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: DoNotSchedule
-      # Replace copies on a dead machine after 15 seconds instead of 5 minutes.
-      tolerations:
-        - key: node.kubernetes.io/unreachable
-          operator: Exists
-          effect: NoExecute
-          tolerationSeconds: 15
-        - key: node.kubernetes.io/not-ready
-          operator: Exists
-          effect: NoExecute
-          tolerationSeconds: 15
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
