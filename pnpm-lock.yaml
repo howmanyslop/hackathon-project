@@ -200,6 +200,9 @@ catalogs:
       specifier: 21.2.3
       version: 21.2.3
   database:
+    '@elastic/elasticsearch':
+      specifier: 9.5.1
+      version: 9.5.1
     '@types/pg':
       specifier: 8.23.1
       version: 8.23.1
@@ -782,6 +785,9 @@ importers:
       '@base-ui/react':
         specifier: catalog:frontend
         version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@elastic/elasticsearch':
+        specifier: catalog:database
+        version: 9.5.1(supports-color@10.2.2)
       '@orpc/client':
         specifier: catalog:orpc
         version: 1.16.1(@opentelemetry/api@1.9.1)
@@ -2101,6 +2107,19 @@ packages:
     peerDependencies:
       effect: ^4.0.6
       redis: '>=5.0.0 <7.0.0'
+
+  '@elastic/elasticsearch@9.5.1':
+    resolution: {integrity: sha512-2ZZqCmgGPjSYn+OphFRYm9g46KVINA0i8fRmlPHJC60RvJeFB6NSHO0nKKOOYhm3WRXyGkLu1xkdXe724fnmnA==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      apache-arrow: 18.x - 21.x
+    peerDependenciesMeta:
+      apache-arrow:
+        optional: true
+
+  '@elastic/transport@9.4.1':
+    resolution: {integrity: sha512-T7+NDXd+cguM3oIq6vXHlKIpDmvPr3wp/2JVeBBEB4xbR7iAzULCUACmM/ltOqTNKnVK+3JW096lXpJbpK3+RQ==}
+    engines: {node: '>=20'}
 
   '@emnapi/core@1.11.0':
     resolution: {integrity: sha512-l9Oo58x0HOP5znGzVhYW9U3e5wVuA4LAZU2AGezTmkhO1CgQRFDhDg4nneHsu/t3WniXg9QrG2nIXL/ZS8ln8Q==}
@@ -8612,6 +8631,10 @@ packages:
     resolution: {integrity: sha512-Hc+ghLoSt6QaYZUv0WBiIvmMDZuZZ7oaDvdH8MbfOO4lOsxdXLEvuC6ePoGs9H1X9oCLyq6+NVN0MKqD+ydxyg==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
+  hpagent@1.2.0:
+    resolution: {integrity: sha512-A91dYTeIB6NoXG+PxTQpCCDDnfHsW9kc06Lvpu1TEe9gnd6ZFeiBoRO9JvzEv6xK7EX97/dUE8g/vBMTqTS3CA==}
+    engines: {node: '>=14'}
+
   html-entities@2.6.0:
     resolution: {integrity: sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ==}
 
@@ -10196,6 +10219,9 @@ packages:
   scslre@0.3.0:
     resolution: {integrity: sha512-3A6sD0WYP7+QrjbfNA2FN3FsOaGGFoekCVgTyypy53gPxhbkCIjtO6YWgdrfM+n/8sI8JeXZOIxsHjMTNxQ4nQ==}
     engines: {node: ^14.0.0 || >=16.0.0}
+
+  secure-json-parse@4.1.1:
+    resolution: {integrity: sha512-lnd81MQEZKjhW/Gd2TQqdd4XP6QYNdDW/EP+I7nTrFHP9y2LmaGPIHk9xsnzcOiEr1c39c/e84xFgGviQKBTRw==}
 
   semver@6.3.2:
     resolution: {integrity: sha512-GYrCADwpu6yV5OAvchkQ27Z5wwMxWAEMg5NNWjyHh/5DboFFqbdbvYNIvZouQpxXyeMPoTOh0vdPYKlf0ZswdQ==}
@@ -12226,6 +12252,26 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  '@elastic/elasticsearch@9.5.1(supports-color@10.2.2)':
+    dependencies:
+      '@elastic/transport': 9.4.1(supports-color@10.2.2)
+      tslib: 2.9.1
+    transitivePeerDependencies:
+      - supports-color
+
+  '@elastic/transport@9.4.1(supports-color@10.2.2)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.12.0(@opentelemetry/api@1.9.1)
+      debug: 4.4.3(supports-color@10.2.2)
+      hpagent: 1.2.0
+      ms: 2.1.3
+      secure-json-parse: 4.1.1
+      tslib: 2.9.1
+      undici: 7.30.2
+    transitivePeerDependencies:
+      - supports-color
 
   '@emnapi/core@1.11.0':
     dependencies:
@@ -19295,6 +19341,8 @@ snapshots:
     dependencies:
       lru-cache: 11.5.3
 
+  hpagent@1.2.0: {}
+
   html-entities@2.6.0: {}
 
   http-cache-semantics@4.3.0: {}
@@ -21541,6 +21589,8 @@ snapshots:
       refa: 0.12.1
       regexp-ast-analysis: 0.7.1
 
+  secure-json-parse@4.1.1: {}
+
   semver@6.3.2: {}
 
   semver@7.8.5: {}
@@ -22634,6 +22684,7 @@ time:
   '@commitlint/types@21.2.3': '2026-09-19T16:51:08.151Z'
   '@e18e/eslint-plugin@0.8.1': '2026-09-17T13:42:43.857Z'
   '@earendil-works/pi-schema@1.5.0': '2026-11-02T10:58:14.914Z'
+  '@elastic/elasticsearch@9.5.1': '2026-08-31T16:57:10.295Z'
   '@faker-js/faker@10.6.0': '2026-08-14T16:57:41.640Z'
   '@gdp-ts/core@0.1.0': '2026-10-05T13:31:08.275Z'
   '@isentinel/eslint-config@6.3.0': '2026-11-02T15:53:10.449Z'
