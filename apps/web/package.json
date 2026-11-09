@@ -48,6 +48,7 @@
 		"cn": "catalog:frontend",
 		"drizzle-kit": "catalog:database",
 		"drizzle-orm": "catalog:database",
+		"onnxruntime-web": "catalog:frontend",
 		"pg": "catalog:database",
 		"react": "catalog:frontend",
 		"react-dom": "catalog:frontend",
