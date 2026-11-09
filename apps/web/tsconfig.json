@@ -7,11 +7,16 @@
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"paths": {
+			"$agent/*": ["./src/agent/*"],
+			"$archive/*": ["./src/archive/*"],
 			"$components/*": ["./src/components/*"],
 			"$db/*": ["./src/db/*"],
+			"$features/*": ["./src/features/*"],
 			"$hooks/*": ["./src/hooks/*"],
 			"$integrations/*": ["./src/integrations/*"],
 			"$lib/*": ["./src/lib/*"],
+			"$llm/*": ["./src/llm/*"],
+			"$mcp/*": ["./src/mcp/*"],
 			"$orpc/*": ["./src/orpc/*"],
 			"$search/*": ["./src/search/*"],
 			"$server/*": ["./src/server/*"]
