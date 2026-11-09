@@ -19,6 +19,10 @@ spec:
       labels:
         app.kubernetes.io/name: postgres
     spec:
+      # The `local-path` volume lives on this machine, so the database stays on
+      # the one that is never unplugged in the failover demo.
+      nodeSelector:
+        kubernetes.io/hostname: control
       containers:
         - name: postgres
           env:

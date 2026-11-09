@@ -92,7 +92,7 @@ Imports across `src` folders use one `$` alias per top-level folder (`$component
 
 ## Deployment (`k8s/`, `apps/web/Dockerfile`)
 
-- `k8s/` is plain manifests applied with Kustomize into the `web` namespace: Postgres (StatefulSet, `local-path` volume), the app (Deployment with two replicas, Service, Traefik Ingress with no host rule).
+- `k8s/` is plain manifests applied with Kustomize into the `web` namespace: Postgres (StatefulSet, `local-path` volume), the app (Deployment with three replicas spread across machines, a PodDisruptionBudget, Service, Traefik Ingress with no host rule).
 - `apps/web/Dockerfile` builds on the host's CPU and ships a `linux/amd64` runtime with only `.output/` and `drizzle/`. Its `app-files` stage is what `k8s:deploy` scans for secrets.
 - `integrations/` wires TanStack Query into the router.
 - UI uses Tailwind 4 and shadcn on Base UI. React Compiler handles memoization, so `useMemo`, `useCallback`, and `memo` are banned, and so is `useEffect` by default.
