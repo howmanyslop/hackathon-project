@@ -900,6 +900,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: catalog:test
         version: 5.1.0(@vitest/browser@5.1.0)(vitest@5.1.0)
+      '@web-template/arktype-utilities':
+        specifier: workspace:*
+        version: link:../../packages/arktype-utilities
       babel-plugin-react-compiler:
         specifier: catalog:web
         version: 1.0.0
