@@ -20,13 +20,23 @@ cannot catch, so flag them in review.
   `apps/web/drizzle/`. Flag hand-edited migrations that drizzle-kit already
   generated.
 - Queries go through Drizzle. Flag raw SQL built by string concatenation.
+- Postgres is the source of truth; Elasticsearch (`apps/web/src/search/`) is a
+  copy for search. Flag writes that fail the request when only indexing
+  failed, and code that reads data back from Elasticsearch instead of
+  Postgres for anything other than search.
+- Elasticsearch work that needs search to be on goes through
+  `getSearchClient()` and handles `undefined`, since search is optional.
 
 ## Secrets and Telemetry
 
 - The repository and its container images are public. Production secrets
   live only in Kubernetes Secrets, never in source, `k8s/`, or `VITE_*`
   variables. Flag Tailscale hostnames or `100.64.0.0/10` addresses.
-- App logs go to stdout in the cluster. Flag `console.*` calls that log tokens, session
+- Elastic and Dash0 keys come from `.env` locally and reach the cluster
+  through `k8s:deploy` and `dash0:install` as Secrets. Flag them anywhere else.
+- The Dash0 operator adds OpenTelemetry to the app. Flag an OpenTelemetry SDK
+  added to `apps/web`, which would trace every request twice.
+- App logs go to stdout in the cluster, and Dash0 collects them. Flag `console.*` calls that log tokens, session
   data, request bodies, or personal data.
 
 ## Generated Code

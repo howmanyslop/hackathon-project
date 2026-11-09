@@ -182,6 +182,10 @@
 				"disabled": false,
 				"type": "local",
 			},
+			"radar-cloud": {
+				"type": "remote",
+				"url": "https://api.radarhq.io/mcp",
+			},
 			"shadcn": {
 				"command": ["node", "--run", "shadcn", "--", "mcp"],
 				"type": "local",

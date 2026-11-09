@@ -13,6 +13,7 @@
 			"$integrations/*": ["./src/integrations/*"],
 			"$lib/*": ["./src/lib/*"],
 			"$orpc/*": ["./src/orpc/*"],
+			"$search/*": ["./src/search/*"],
 			"$server/*": ["./src/server/*"]
 		},
 		"types": ["vite/client"],

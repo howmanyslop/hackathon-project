@@ -24,6 +24,7 @@
 	},
 	"dependencies": {
 		"@base-ui/react": "catalog:frontend",
+		"@elastic/elasticsearch": "catalog:database",
 		"@orpc/client": "catalog:orpc",
 		"@orpc/server": "catalog:orpc",
 		"@orpc/tanstack-query": "catalog:web",
@@ -63,6 +64,7 @@
 		"@vitejs/plugin-react": "catalog:vite",
 		"@vitest/browser-playwright": "catalog:tooling",
 		"@vitest/coverage-v8": "catalog:test",
+		"@web-template/arktype-utilities": "workspace:*",
 		"babel-plugin-react-compiler": "catalog:web",
 		"nitro": "catalog:vite",
 		"playwright": "catalog:tooling",

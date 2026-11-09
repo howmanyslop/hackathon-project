@@ -22,12 +22,14 @@ cargo.binstall_native = true
 # fish 4 ships a single binary on Linux; fish_indent is a builtin inside it.
 # macOS installs fish separately (Homebrew), since the release only has a .pkg.
 "github:fish-shell/fish-shell" = { version = "latest", os = ["linux"] }
+"github:skyhook-io/radar" = "latest"
 "pipx:sqlfluff" = "latest"
 betterleaks = "latest"
 bun = "latest"
 container = { version = "latest", os = ["macos/arm64"] }
 direnv = "latest"
 harper-cli = "2.9.1"
+helm = "latest"
 hk = { version = "2.11.1", workflow = "release.yml" }
 jactionlint = "latest"
 kubectl = "latest"
@@ -59,6 +61,56 @@ arg <message> {
 run = """
 git commit --signoff --message "${usage_message?}" --no-verify
 """
+
+[tasks."dash0:down"]
+description = "Stops sending telemetry to Dash0 and removes the Dash0 operator from the cluster."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+kubectl delete --filename k8s/dash0/monitoring.yaml --ignore-not-found
+# Uninstalling the operator also removes its instrumentation from the app.
+helm uninstall dash0-operator --namespace dash0-system --wait --ignore-not-found
+kubectl delete namespace dash0-system --ignore-not-found
+'''
+
+[tasks."dash0:install"]
+description = "Installs the Dash0 operator and sends the app's traces, logs, and metrics to Dash0."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+for name in DASH0_ENDPOINT DASH0_API_ENDPOINT DASH0_AUTH_TOKEN; do
+	if [[ -z "${!name:-}" ]]; then
+		echo "Set ${name} in .env first; .env.example says where each value comes from." >&2
+		exit 1
+	fi
+done
+
+# The token lives in a Secret, not in Helm values, which end up in a ConfigMap.
+echo "==> Storing the Dash0 token in the dash0-system namespace"
+kubectl create namespace dash0-system --dry-run=client --output yaml | kubectl apply --filename - > /dev/null
+kubectl --namespace dash0-system create secret generic dash0-authorization-secret \
+	--from-file=token=<(printf '%s' "${DASH0_AUTH_TOKEN}") \
+	--dry-run=client --output yaml | kubectl apply --filename - > /dev/null
+
+echo "==> Installing the Dash0 operator"
+helm repo add dash0-operator https://dash0hq.github.io/dash0-operator --force-update > /dev/null
+helm upgrade dash0-operator dash0-operator/dash0-operator \
+	--install --wait \
+	--namespace dash0-system \
+	--version 0.159.0 \
+	--set operator.dash0Export.enabled=true \
+	--set operator.dash0Export.endpoint="${DASH0_ENDPOINT}" \
+	--set operator.dash0Export.apiEndpoint="${DASH0_API_ENDPOINT}" \
+	--set operator.dash0Export.secretRef.name=dash0-authorization-secret \
+	--set operator.dash0Export.secretRef.key=token \
+	--set operator.clusterName=hackathon
+
+echo "==> Monitoring the web namespace (this restarts the app's pods once)"
+kubectl apply --filename k8s/namespace.yaml > /dev/null
+kubectl apply --filename k8s/dash0/monitoring.yaml
+echo "==> Done. Traces, logs, and metrics show up in https://app.dash0.com within a few minutes."
+'''
 
 [tasks."k8s:db"]
 description = "Connects localhost:5432 to the cluster's Postgres until you press Ctrl+C."
@@ -117,7 +169,35 @@ kubectl apply --filename k8s/namespace.yaml
 if ! kubectl --namespace web get secret web-postgres > /dev/null 2>&1; then
 	kubectl --namespace web create secret generic web-postgres --from-literal=password="$(openssl rand -hex 24)"
 fi
+
+# Search is optional. With both Elastic values in .env, copy them into the
+# `web-elastic` Secret; the values go through files, not the command line.
+elastic_before="$(kubectl --namespace web get secret web-elastic --output jsonpath='{.data}' 2> /dev/null || true)"
+if [[ -n "${ELASTICSEARCH_URL:-}" && -n "${ELASTICSEARCH_API_KEY:-}" ]]; then
+	kubectl --namespace web create secret generic web-elastic \
+		--from-file=url=<(printf '%s' "${ELASTICSEARCH_URL}") \
+		--from-file=api-key=<(printf '%s' "${ELASTICSEARCH_API_KEY}") \
+		--dry-run=client --output yaml | kubectl apply --filename - > /dev/null
+elif [[ -n "${ELASTICSEARCH_URL:-}${ELASTICSEARCH_API_KEY:-}" ]]; then
+	echo "Set both ELASTICSEARCH_URL and ELASTICSEARCH_API_KEY in .env, or neither." >&2
+	exit 1
+elif [[ -z "${elastic_before}" ]]; then
+	echo "==> No Elastic values in .env; deploying without search"
+fi
+elastic_after="$(kubectl --namespace web get secret web-elastic --output jsonpath='{.data}' 2> /dev/null || true)"
+
 kubectl kustomize k8s | sed "s|${image}:latest|${image}:${tag}|" | kubectl apply --filename -
+
+# Once `dash0:install` has run, keep monitoring on, even after `k8s:down`.
+if kubectl get crd dash0monitorings.operator.dash0.com > /dev/null 2>&1; then
+	kubectl apply --filename k8s/dash0/monitoring.yaml
+fi
+
+# Pods read Secrets only when they start, so restart them if the keys changed.
+if [[ "${elastic_before}" != "${elastic_after}" ]]; then
+	echo "==> Elastic values changed; restarting the app to pick them up"
+	kubectl --namespace web rollout restart deployment/web
+fi
 
 echo "==> Waiting for the rollout"
 kubectl --namespace web rollout status statefulset/postgres --timeout=180s
