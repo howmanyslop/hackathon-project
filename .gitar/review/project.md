@@ -23,12 +23,13 @@ cannot catch, so flag them in review.
 
 ## Secrets and Telemetry
 
-- Production secrets belong in `apps/web/cloudflare.config.ts` as
-  `bindings.secret()`, never in source or `vars`.
-- Worker logs export to Dash0. Flag `console.*` calls that log tokens, session
+- The repository and its container images are public. Production secrets
+  live only in Kubernetes Secrets, never in source, `k8s/`, or `VITE_*`
+  variables. Flag Tailscale hostnames or `100.64.0.0/10` addresses.
+- App logs go to stdout in the cluster. Flag `console.*` calls that log tokens, session
   data, request bodies, or personal data.
 
 ## Generated Code
 
-- Flag hand edits to `*.gen.ts`, `.cloudflare/`, or
+- Flag hand edits to `*.gen.ts` or
   `apps/web/src/components/ui/`.

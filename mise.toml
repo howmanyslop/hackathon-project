@@ -60,6 +60,20 @@ run = """
 git commit --signoff --message "${usage_message?}" --no-verify
 """
 
+[tasks."k8s:db"]
+description = "Connects localhost:5432 to the cluster's Postgres until you press Ctrl+C."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+password="$(kubectl --namespace web get secret web-postgres --output jsonpath='{.data.password}' | base64 --decode)"
+echo "In another terminal, for db:studio or node --run dev against the cluster's data:"
+echo
+echo "  export DATABASE_URL=postgres://web:${password}@localhost:5432/web"
+echo
+echo "Stop any local Postgres on port 5432 first. Press Ctrl+C here to disconnect."
+kubectl --namespace web port-forward service/postgres 5432:5432
+'''
+
 [tasks."k8s:deploy"]
 description = "Builds the web image, pushes it to ghcr.io, and deploys it to the team cluster."
 run = '''
@@ -122,6 +136,20 @@ kubectl --namespace web rollout status deployment/web --timeout=5s
 # The address comes from the local kubeconfig, never from this repository.
 host="$(kubectl config view --minify --output jsonpath='{.clusters[0].cluster.server}' | sed -E 's|^https?://||; s|:[0-9]+$||')"
 echo "==> Deployed ${tag}: http://${host}"
+'''
+
+[tasks."k8s:down"]
+description = "Deletes the app and its database from the cluster, after asking."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+read -r -p "Delete the web namespace, including every todo in the database? Type 'delete' to confirm: " answer
+if [[ "${answer}" != "delete" ]]; then
+	echo "Nothing deleted."
+	exit 0
+fi
+kubectl delete namespace web
+echo "Deleted. mise run k8s:deploy creates it again, with an empty database."
 '''
 
 [tasks."k8s:logs"]

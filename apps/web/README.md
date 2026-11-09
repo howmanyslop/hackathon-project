@@ -1,6 +1,6 @@
 # web
 
-TanStack Start on Cloudflare Workers. See the root `AGENTS.md` for commands and architecture.
+TanStack Start on Node, built with Nitro. See the root `AGENTS.md` for commands and architecture, and the root `README.md` for deploying to the cluster.
 
 ## First Run
 
