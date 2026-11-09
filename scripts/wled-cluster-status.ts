@@ -66,7 +66,7 @@ const WatchLine = type({
 	}).array(),
 });
 
-const RadarIssues = type({ issues: type({ severity: "string" }).array() });
+const RadarIssues = type({ issues: type({ "namespace?": "string", severity: "string" }).array() });
 
 interface Options {
 	readonly brightness: number;
@@ -77,6 +77,7 @@ interface Options {
 	readonly port: string;
 	readonly preview: boolean;
 	readonly radarCluster: string;
+	readonly radarIgnoreNamespaces: Array<string>;
 	readonly radarInterval: number;
 	readonly radarToken: string;
 	readonly radarUrl: string;
@@ -237,9 +238,14 @@ async function runBridgeAsync(options: Options): Promise<void> {
 				throw new TypeError(parsed.summary);
 			}
 
-			const health = getClusterHealth(parsed.issues.map((issue) => issue.severity));
+			const counted = parsed.issues.filter(
+				(issue) => issue.namespace === undefined || !options.radarIgnoreNamespaces.includes(issue.namespace),
+			);
+			const health = getClusterHealth(counted.map((issue) => issue.severity));
 			if (health !== state.health || state.radarFailing) {
-				log.info(`radar: ${String(parsed.issues.length)} issue(s), cluster ${health}`);
+				log.info(
+					`radar: ${String(counted.length)} issue(s), ${String(parsed.issues.length - counted.length)} ignored, cluster ${health}`,
+				);
 			}
 
 			state.health = health;
@@ -390,6 +396,10 @@ const command = createBaseCommand(
 	.option("--radar-cluster <id:string>", "Radar cluster id. Also read from RADAR_CLUSTER.", {
 		default: env.RADAR_CLUSTER ?? "",
 	})
+	.option(
+		"--radar-ignore-namespace <names:string>",
+		"Comma-separated namespaces whose Radar issues are ignored, such as a known harmless warning.",
+	)
 	.option("--radar-interval <seconds:number>", "Seconds between Radar issue checks.", { default: 5 })
 	.option("--dry-run", "Print the commands instead of writing to the board.")
 	.option("--preview", "Play every state on the strip once, without reading the cluster.")
@@ -403,6 +413,10 @@ const command = createBaseCommand(
 			port: flags.port,
 			preview: flags.preview === true,
 			radarCluster: flags.radarCluster,
+			radarIgnoreNamespaces: (flags.radarIgnoreNamespace ?? "")
+				.split(",")
+				.map((name) => name.trim())
+				.filter((name) => name.length > 0),
 			radarInterval: flags.radarInterval,
 			radarToken: env.RADAR_TOKEN ?? "",
 			radarUrl: flags.radarUrl.endsWith("/") ? flags.radarUrl.slice(0, -1) : flags.radarUrl,
