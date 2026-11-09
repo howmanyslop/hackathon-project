@@ -460,7 +460,6 @@
 					"format": { "singleQuote": false },
 					"keyOrdering": false,
 					"schemas": {
-						"./schemas/kubernetes.yaml": "k8s/**/*.yaml",
 						"https://json.schemastore.org/dependabot-v2.json": ".github/dependabot.*",
 						"https://json.schemastore.org/github-workflow.json": ".github/workflows/*",
 						// "~/global-schemas/docker-compose.yaml": "docker-compose*.yml",
