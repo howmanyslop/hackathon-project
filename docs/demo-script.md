@@ -43,7 +43,7 @@ Each beat lists what is on screen and what to say. Record the screen and the voi
 ## Before you record
 
 - [ ] Rehearse once on the phone: start a recording, say two sentences, tap "Start Q&A", ask and answer one question out loud, tap "Stop and save". Check that the phone says "Saved." and how many questions it found.
-- [ ] Rehearse the model shot: open `/record?engine=model` on the laptop, start a recording, and wait for "Getting the speech model ready" to finish. The first time, it downloads about 28 MB. If words don't appear, leave beat 4 out of the video.
+- [ ] Rehearse the model shot: open `/record?engine=model` on the laptop, start a recording, and wait for "Getting the speech model ready" to finish. The first time, it downloads about 43 MB (the model and the code that runs it), and large files leave the cluster at under 100 KB/s, so allow 8 to 10 minutes. Beat 4 only needs the loading readout and the note on screen, so it can be filmed while that runs. If you want words on screen and none appear, leave them out; nobody has seen the model transcribe in a real browser yet.
 - [ ] Delete every rehearsal session. Open its page, choose "Delete this session", enter the presenter code, and choose "Delete for good". A session that never got "Stop and save" stays "Live now" forever otherwise.
 - [ ] Check the home page: 16 questions answered, 4 sessions, 0 live now, plus anything you chose to keep.
 - [ ] Try both searches and the Ask question from the beats below, so the answers are fresh in your mind.
@@ -143,7 +143,7 @@ It works on a phone, in light and dark. No audio or video ever reaches us; we st
 - The phone shows no microphone prompt: the page must be on HTTPS. Use the public address, not the cluster's plain HTTP one.
 - Speech recognition stops: tap "Stop and save", then start a new session. Sentences already sent are kept.
 - The model shot shows "The speech model could not be downloaded": check the connection and start again. If it still fails, leave beat 4 out; phones with their own speech-to-text never need the model.
-- The model shot is slow to start: the first use downloads about 28 MB. Load it once before recording, so the browser has it cached.
+- The model shot is slow to start: the first use downloads about 43 MB at under 100 KB/s, which is 8 to 10 minutes. Start it well before recording and leave the tab open.
 - Search returns nothing at all: Elastic may be unreachable. Show a sample session page instead; Postgres still has everything.
 - The Ask box says it is busy: it takes ten questions a minute. Wait a minute and ask again.
 - The Ask box says it has used its budget, or is not available: skip beat 6 and go straight to the terminal.
