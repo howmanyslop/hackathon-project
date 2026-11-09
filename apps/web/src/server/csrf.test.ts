@@ -26,13 +26,49 @@ describe("same-origin check", () => {
 		expect(isCsrfSafeRequest(post({ "sec-fetch-site": "same-site" }))).toBe(false);
 	});
 
-	// Catches a forged Origin, or one from a different port or scheme.
+	// Catches a forged Origin, or one from a different host or port.
 	it("refuses an origin that is not this one", () => {
 		expect.assertions(3);
 
 		expect(isCsrfSafeRequest(post({ origin: "https://elsewhere.example.com" }))).toBe(false);
-		expect(isCsrfSafeRequest(post({ origin: "http://app.example.com" }))).toBe(false);
 		expect(isCsrfSafeRequest(post({ origin: "https://app.example.com:8443" }))).toBe(false);
+		expect(isCsrfSafeRequest(post({ origin: "https://app.example.com.evil.test" }))).toBe(false);
+	});
+
+	// Catches the app refusing its own pages once a tunnel ends HTTPS in front
+	// of it and the request arrives over plain http.
+	it("allows an https origin on a request forwarded over http", () => {
+		expect.assertions(1);
+
+		const forwarded = new Request("http://app.example.com/api/rpc", {
+			headers: { origin: "https://app.example.com" },
+			method: "POST",
+		});
+
+		expect(isCsrfSafeRequest(forwarded)).toBe(true);
+	});
+
+	// Catches the check trusting the address the app listens on instead of
+	// the host the browser asked for.
+	it("compares the origin with the Host header when there is one", () => {
+		expect.assertions(2);
+
+		function createForwardedRequest(host: string): Request {
+			return new Request("http://10.42.0.7:3000/api/rpc", {
+				headers: { host, origin: "https://app.example.com" },
+				method: "POST",
+			});
+		}
+
+		expect(isCsrfSafeRequest(createForwardedRequest("app.example.com"))).toBe(true);
+		expect(isCsrfSafeRequest(createForwardedRequest("elsewhere.example.com"))).toBe(false);
+	});
+
+	// Catches a non-web origin that happens to carry this host name.
+	it("refuses an origin that is not http or https", () => {
+		expect.assertions(1);
+
+		expect(isCsrfSafeRequest(post({ origin: "ftp://app.example.com" }))).toBe(false);
 	});
 
 	// Catches an opaque, sandboxed origin being mistaken for no origin.
