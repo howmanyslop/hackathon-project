@@ -32,6 +32,10 @@
 			"args": ["x", "--", "nlx", "@playwright/mcp@latest"],
 			"command": "mise"
 		},
+		"radar-cloud": {
+			"type": "remote",
+			"url": "https://api.radarhq.io/mcp"
+		},
 		"shadcn": {
 			"args": ["x", "--", "node", "--run", "shadcn", "--", "mcp"],
 			"command": "mise"
