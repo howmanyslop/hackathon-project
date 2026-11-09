@@ -27,6 +27,7 @@ storybook-static
 .dev.vars*
 coverage/
 playwright-report/
+.playwright-mcp/
 test-results/
 **/*.tsbuildinfo
 
@@ -161,3 +162,5 @@ lerna-debug.log*
 .agents/skills/chief-of-staff
 .agents/skills/setup-ts-deep-modules
 .agents/skills/tailscale
+.agents/skills/choreograph
+.agents/skills/gestures

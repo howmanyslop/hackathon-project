@@ -67,6 +67,12 @@
       "skillPath": "skills/in-progress/chief-of-staff/SKILL.md",
       "computedHash": "8a5ccad808e4f6158380720907f0af3a96bbee98cc5aa721053acd97fa72ce4b"
     },
+    "choreograph": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/choreograph/SKILL.md",
+      "computedHash": "4c0615e0cd41ffbca0c7912dba1f1dd1d84b8a3499a5c393be53df9d1b9dec16"
+    },
     "clerk": {
       "source": "clerk/skills",
       "sourceType": "github",
@@ -204,6 +210,12 @@
       "sourceType": "github",
       "skillPath": "skills/gdp-ts/SKILL.md",
       "computedHash": "77779b495dbb6291b953d87610e394319f85430fbb4b4b09c8c8a1e06d92e1e3"
+    },
+    "gestures": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/gestures/SKILL.md",
+      "computedHash": "2c19486204e39a7032f878a4261b669ac521c974d970126d576945eb770c4f7b"
     },
     "grill-me": {
       "source": "mattpocock/skills",
