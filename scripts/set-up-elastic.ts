@@ -7,19 +7,25 @@
  * lives in `elastic/`. Safe to run again.
  */
 
+import { readFile } from "node:fs/promises";
 import nodePath from "node:path";
 import { argv, env, exit } from "node:process";
+import { parseArgs } from "node:util";
 import { type } from "arktype";
-import { file } from "bun";
 import { consola } from "consola";
 
-import { createBaseCommand } from "$script-functions/create-base-command";
-import { getScriptName } from "$script-functions/get-script-name";
+const SCRIPT_NAME = "set-up-elastic";
+const log = consola.withTag(SCRIPT_NAME);
 
-const scriptName = getScriptName(true);
-const log = consola.withTag(scriptName);
+const USAGE = `Usage: ${SCRIPT_NAME} [options]
 
-const ELASTIC_DIRECTORY = nodePath.join(import.meta.dir, "..", "elastic");
+Creates or updates the Elastic indices, tools, agent, and workflow.
+
+Options:
+  -h, --help        Show this help.
+  --run-workflow    Run the digest workflow once after setting it up.`;
+
+const ELASTIC_DIRECTORY = nodePath.join(import.meta.dirname, "..", "elastic");
 const TOOL_FILES = ["search-answered-questions.json", "search-talk-passages.json", "count-questions-by-session.json"];
 const WORKFLOW_ID = "asked-themes-digest";
 
@@ -35,7 +41,7 @@ const isToolDefinition = type({
 	description: "string",
 	"tags?": "string[] | undefined",
 	type: "string",
-});
+}).readonly();
 
 const isAgentDefinition = type({
 	id: "string",
@@ -44,7 +50,14 @@ const isAgentDefinition = type({
 	configuration: isJsonObject,
 	description: "string",
 	"labels?": "string[] | undefined",
-});
+}).readonly();
+
+// Kibana answers a workflow create or update with whether the YAML is valid.
+const isWorkflowReply = type({
+	enabled: "boolean",
+	valid: "boolean",
+	"validationErrors?": "unknown[] | undefined",
+}).readonly();
 
 type ToolDefinition = typeof isToolDefinition.infer;
 
@@ -68,6 +81,10 @@ interface Connection {
 interface ApiResponse {
 	readonly body: unknown;
 	readonly status: number;
+}
+
+interface Options {
+	readonly runWorkflow: boolean;
 }
 
 interface ApiRequest {
@@ -168,12 +185,12 @@ async function ensureIndexAsync(connection: Connection, name: string, mappings: 
 }
 
 async function readToolAsync(fileName: string): Promise<ToolDefinition> {
-	const text = await file(nodePath.join(ELASTIC_DIRECTORY, "tools", fileName)).text();
+	const text = await readFile(nodePath.join(ELASTIC_DIRECTORY, "tools", fileName), "utf8");
 	return isToolDefinition.assert(JSON.parse(text));
 }
 
 async function readAgentAsync(): Promise<AgentDefinition> {
-	const text = await file(nodePath.join(ELASTIC_DIRECTORY, "agent.json")).text();
+	const text = await readFile(nodePath.join(ELASTIC_DIRECTORY, "agent.json"), "utf8");
 	return isAgentDefinition.assert(JSON.parse(text));
 }
 
@@ -223,21 +240,42 @@ async function upsertAgentAsync(connection: Connection): Promise<void> {
 	log.success(`Updated agent ${agent.id}`);
 }
 
+function assertWorkflowUsable(response: ApiResponse): void {
+	const workflow = isWorkflowReply(response.body);
+	if (workflow instanceof type.errors) {
+		log.error(`Kibana's workflow reply has an unexpected shape: ${workflow.summary}`, response.body);
+		exit(1);
+	}
+
+	if (!workflow.valid) {
+		log.error(`Workflow ${WORKFLOW_ID} is not valid:`, workflow.validationErrors ?? []);
+		exit(1);
+	}
+
+	if (!workflow.enabled) {
+		log.error(`Workflow ${WORKFLOW_ID} came back disabled.`, workflow.validationErrors ?? []);
+		exit(1);
+	}
+}
+
 async function upsertWorkflowAsync(connection: Connection): Promise<void> {
-	const yaml = await file(nodePath.join(ELASTIC_DIRECTORY, "workflows", "themes-digest.yaml")).text();
+	const yaml = await readFile(nodePath.join(ELASTIC_DIRECTORY, "workflows", "themes-digest.yaml"), "utf8");
 	const url = `${connection.kibanaUrl}/api/workflows/workflow/${WORKFLOW_ID}`;
 	const existing = await sendRequestAsync(connection, { method: "GET", url });
 	if (existing.status === 404) {
-		await sendOrFailAsync(connection, {
+		const created = await sendOrFailAsync(connection, {
 			body: { id: WORKFLOW_ID, yaml },
 			method: "POST",
 			url: `${connection.kibanaUrl}/api/workflows/workflow`,
 		});
+
+		assertWorkflowUsable(created);
 		log.success(`Created workflow ${WORKFLOW_ID}`);
 		return;
 	}
 
-	await sendOrFailAsync(connection, { body: { yaml }, method: "PUT", url });
+	const updated = await sendOrFailAsync(connection, { body: { yaml }, method: "PUT", url });
+	assertWorkflowUsable(updated);
 	log.success(`Updated workflow ${WORKFLOW_ID}`);
 }
 
@@ -251,29 +289,49 @@ async function runWorkflowAsync(connection: Connection): Promise<void> {
 	log.success("Started the digest workflow:", run.body);
 }
 
-const command = createBaseCommand(
-	scriptName,
-	"1.0.0",
-	"Creates or updates the Elastic indices, tools, agent, and workflow.",
-)
-	.option("--run-workflow", "Run the digest workflow once after setting it up.")
-	.action(async ({ runWorkflow }) => {
-		const connection = getConnection();
-		log.info(`Kibana: ${new URL(connection.kibanaUrl).host}`);
+function parseOptions(): Options {
+	let runWorkflow = false;
+	try {
+		const { values } = parseArgs({
+			args: argv.slice(2),
+			options: {
+				help: { short: "h", type: "boolean" },
+				"run-workflow": { type: "boolean" },
+			},
+		});
 
-		await ensureIndexAsync(connection, ARCHIVE_INDEX, ARCHIVE_MAPPINGS);
-		await ensureIndexAsync(connection, DIGEST_INDEX, DIGEST_MAPPINGS);
-
-		// The agent names the tools, so they must exist first.
-		await Promise.all(TOOL_FILES.map(async (fileName) => upsertToolAsync(connection, fileName)));
-		await upsertAgentAsync(connection);
-		await upsertWorkflowAsync(connection);
-
-		if (runWorkflow === true) {
-			await runWorkflowAsync(connection);
+		if (values.help === true) {
+			console.log(USAGE);
+			exit(0);
 		}
 
-		log.success("Elastic is set up.");
-	});
+		runWorkflow = values["run-workflow"] === true;
+	} catch (error) {
+		console.error(`${error instanceof Error ? error.message : String(error)}\n\n${USAGE}`);
+		exit(1);
+	}
 
-await command.parse(argv.slice(2));
+	return { runWorkflow };
+}
+
+async function setUpElasticAsync(): Promise<void> {
+	const { runWorkflow } = parseOptions();
+	const connection = getConnection();
+	log.info(`Kibana: ${new URL(connection.kibanaUrl).host}`);
+
+	await ensureIndexAsync(connection, ARCHIVE_INDEX, ARCHIVE_MAPPINGS);
+	await ensureIndexAsync(connection, DIGEST_INDEX, DIGEST_MAPPINGS);
+
+	// The agent names the tools, so they must exist first.
+	await Promise.all(TOOL_FILES.map(async (fileName) => upsertToolAsync(connection, fileName)));
+	await upsertAgentAsync(connection);
+	await upsertWorkflowAsync(connection);
+
+	if (runWorkflow) {
+		await runWorkflowAsync(connection);
+	}
+
+	log.success("Elastic is set up.");
+}
+
+await setUpElasticAsync();
