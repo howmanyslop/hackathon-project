@@ -1,0 +1,332 @@
+{
+	"qaStartMs": 606465,
+	"segments": [
+		{
+			"endMs": 18411,
+			"startMs": 2826,
+			"text": "Hi everyone, thanks for coming, I know this is the slot right after lunch so I will try to keep you awake."
+		},
+		{
+			"endMs": 30188,
+			"startMs": 18710,
+			"text": "My name is Priya and I run a very small Kubernetes cluster in a closet at our office."
+		},
+		{
+			"endMs": 44477,
+			"startMs": 30986,
+			"text": "It is four machines running k3s, and today I want to tell you what happened the night one of them died."
+		},
+		{
+			"endMs": 56110,
+			"startMs": 45323,
+			"text": "So first, a little background on why we run k3s at all instead of a managed service."
+		},
+		{
+			"endMs": 70257,
+			"startMs": 56879,
+			"text": "We are a team of six, our budget is small, and we wanted to learn how the pieces fit together."
+		},
+		{
+			"endMs": 82783,
+			"startMs": 70595,
+			"text": "k3s gave us a single binary, a sane default storage class, and Traefik out of the box."
+		},
+		{
+			"endMs": 93897,
+			"startMs": 83104,
+			"text": "For about a year it just worked, and honestly we stopped paying much attention to it."
+		},
+		{
+			"endMs": 107580,
+			"startMs": 94711,
+			"text": "Then one Tuesday night the power supply in node three gave up with a very sad little click."
+		},
+		{
+			"endMs": 120090,
+			"startMs": 108409,
+			"text": "The first thing we noticed was not an alert, it was a customer saying the site felt slow."
+		},
+		{
+			"endMs": 135771,
+			"startMs": 120568,
+			"text": "That is lesson number one, and I will come back to it: we had no alert for a missing node."
+		},
+		{
+			"endMs": 148233,
+			"startMs": 136617,
+			"text": "Kubernetes did notice, of course, but it noticed on its own schedule, not ours."
+		},
+		{
+			"endMs": 160327,
+			"startMs": 149073,
+			"text": "By default a node is marked not ready after about forty seconds without a heartbeat."
+		},
+		{
+			"endMs": 173167,
+			"startMs": 160627,
+			"text": "Then the pods on that node wait roughly five more minutes before they get evicted."
+		},
+		{
+			"endMs": 187599,
+			"startMs": 173464,
+			"text": "So for five minutes, a third of our app replicas were sitting on a machine that no longer existed."
+		},
+		{
+			"endMs": 200321,
+			"startMs": 187985,
+			"text": "The service still sent traffic to them until the endpoints were updated, which is why things felt slow."
+		},
+		{
+			"endMs": 211084,
+			"startMs": 200718,
+			"text": "Lesson number two is that readiness probes are doing more work than you think."
+		},
+		{
+			"endMs": 221571,
+			"startMs": 211918,
+			"text": "Our app replicas came back on other nodes fairly quickly once eviction kicked in."
+		},
+		{
+			"endMs": 233763,
+			"startMs": 222519,
+			"text": "The database was a different story, and this is where most of my gray hair comes from."
+		},
+		{
+			"endMs": 248803,
+			"startMs": 234608,
+			"text": "We ran Postgres as a StatefulSet with a local path volume, which means the data lives on one disk."
+		},
+		{
+			"endMs": 259797,
+			"startMs": 249245,
+			"text": "When that disk is inside a dead machine, the pod cannot just move somewhere else."
+		},
+		{
+			"endMs": 271500,
+			"startMs": 260607,
+			"text": "Kubernetes was very polite about it and simply refused to schedule the pod anywhere."
+		},
+		{
+			"endMs": 279945,
+			"startMs": 272327,
+			"text": "So we had a database that was technically configured, and practically gone."
+		},
+		{
+			"endMs": 292096,
+			"startMs": 280405,
+			"text": "Luckily we had nightly backups to object storage, and we had actually tested restoring them once."
+		},
+		{
+			"endMs": 304340,
+			"startMs": 292890,
+			"text": "I cannot stress that enough, a backup you have never restored is just a hopeful file."
+		},
+		{
+			"endMs": 316494,
+			"startMs": 304911,
+			"text": "We restored to a new volume on node one and lost about nine hours of writes."
+		},
+		{
+			"endMs": 331231,
+			"startMs": 317208,
+			"text": "Nine hours sounds bad, and it was, but for our app it meant some draft notes and a few comments."
+		},
+		{
+			"endMs": 346861,
+			"startMs": 331735,
+			"text": "Afterwards we sat down and wrote down what we would change, and I want to walk through that list."
+		},
+		{
+			"endMs": 355037,
+			"startMs": 347360,
+			"text": "First, we spread the app replicas across machines with topology spread constraints."
+		},
+		{
+			"endMs": 366649,
+			"startMs": 355594,
+			"text": "Before, the scheduler had happily put two of our three replicas on the same node."
+		},
+		{
+			"endMs": 379760,
+			"startMs": 367250,
+			"text": "Second, we added a pod disruption budget so a drain never takes every replica at once."
+		},
+		{
+			"endMs": 391635,
+			"startMs": 380304,
+			"text": "Third, we added an alert on node not ready that pages someone after two minutes."
+		},
+		{
+			"endMs": 402322,
+			"startMs": 391959,
+			"text": "Fourth, and this is the big one, we moved backups from nightly to every fifteen minutes."
+		},
+		{
+			"endMs": 412212,
+			"startMs": 403000,
+			"text": "We looked at running replicated storage like Longhorn, and maybe we will get there."
+		},
+		{
+			"endMs": 425259,
+			"startMs": 412812,
+			"text": "But for a cluster this size, more storage software was more things to break at two in the morning."
+		},
+		{
+			"endMs": 438152,
+			"startMs": 426009,
+			"text": "Write ahead log shipping every fifteen minutes gave us most of the benefit for very little effort."
+		},
+		{
+			"endMs": 449307,
+			"startMs": 439086,
+			"text": "We also practice now, which sounds silly, but we literally unplug a machine once a month."
+		},
+		{
+			"endMs": 462836,
+			"startMs": 450128,
+			"text": "The first time we did it on purpose, it took us forty minutes to recover the database."
+		},
+		{
+			"endMs": 475943,
+			"startMs": 463407,
+			"text": "The last time it took six, because we had a written runbook and we had done it before."
+		},
+		{
+			"endMs": 490843,
+			"startMs": 476551,
+			"text": "I want to show you that runbook quickly, it is only one page and it fits on the screen."
+		},
+		{
+			"endMs": 502839,
+			"startMs": 491686,
+			"text": "Step one, confirm the node is really gone and not just a network blip."
+		},
+		{
+			"endMs": 514444,
+			"startMs": 503159,
+			"text": "Step two, cordon it so nothing new lands there when it comes back confused."
+		},
+		{
+			"endMs": 525857,
+			"startMs": 514970,
+			"text": "Step three, restore the latest base backup and replay the logs onto a fresh volume."
+		},
+		{
+			"endMs": 535691,
+			"startMs": 526787,
+			"text": "Step four, point the StatefulSet at the new volume and watch the app reconnect."
+		},
+		{
+			"endMs": 550770,
+			"startMs": 536258,
+			"text": "That is all of it, and the whole point is that a tired person at night can follow it."
+		},
+		{
+			"endMs": 562947,
+			"startMs": 551717,
+			"text": "The other thing I want to say is that small clusters are not toys."
+		},
+		{
+			"endMs": 576732,
+			"startMs": 563488,
+			"text": "They fail in exactly the same ways as big ones, you just have less room to hide."
+		},
+		{
+			"endMs": 589531,
+			"startMs": 577666,
+			"text": "So, to sum up: alert on nodes, spread your replicas, back up often, and practice the restore."
+		},
+		{
+			"endMs": 602849,
+			"startMs": 590253,
+			"text": "That is my talk, thank you so much, and I think we have a few minutes for questions."
+		},
+		{
+			"endMs": 612939,
+			"startMs": 606465,
+			"text": "Okay, I see a hand in the front, go ahead."
+		},
+		{
+			"endMs": 627639,
+			"startMs": 613412,
+			"text": "Um, so what actually happens to the traffic when a node dies, like during those first few minutes?"
+		},
+		{
+			"endMs": 641346,
+			"startMs": 628021,
+			"text": "So the question is what happens to traffic in the first few minutes after a node dies."
+		},
+		{
+			"endMs": 656862,
+			"startMs": 642003,
+			"text": "The short answer is that some requests still go to the dead pods until Kubernetes takes them out of the endpoints."
+		},
+		{
+			"endMs": 670409,
+			"startMs": 657620,
+			"text": "Readiness probes help a lot there, and so does having replicas on other machines so the healthy ones keep serving."
+		},
+		{
+			"endMs": 676797,
+			"startMs": 671118,
+			"text": "Great, next question, over there by the door."
+		},
+		{
+			"endMs": 690381,
+			"startMs": 677331,
+			"text": "Did you ever think about just paying for a managed database instead of running Postgres yourselves?"
+		},
+		{
+			"endMs": 703242,
+			"startMs": 691071,
+			"text": "Yeah, we did, and honestly for most teams I would say just pay for it."
+		},
+		{
+			"endMs": 718536,
+			"startMs": 703777,
+			"text": "For us it was about learning and about cost, our whole cluster costs less than one managed database instance."
+		},
+		{
+			"endMs": 733042,
+			"startMs": 719153,
+			"text": "Hi, how long did it take you to write the runbook, and who keeps it up to date?"
+		},
+		{
+			"endMs": 748656,
+			"startMs": 733681,
+			"text": "The first version took an afternoon, and whoever runs the monthly unplug drill fixes anything that was wrong."
+		},
+		{
+			"endMs": 759940,
+			"startMs": 749060,
+			"text": "So, yeah, the drill is what keeps it honest, a runbook nobody runs goes stale really fast."
+		},
+		{
+			"endMs": 764380,
+			"startMs": 760344,
+			"text": "One more maybe, in the back."
+		},
+		{
+			"endMs": 775483,
+			"startMs": 764868,
+			"text": "Why not run three Postgres replicas with something like an operator, so a node failure is automatic?"
+		},
+		{
+			"endMs": 788248,
+			"startMs": 776336,
+			"text": "So the question is why not use a Postgres operator with replicas, and that is a fair question."
+		},
+		{
+			"endMs": 803730,
+			"startMs": 788786,
+			"text": "We tried one and it worked, but we did not understand it well enough to fix it when it broke, so we chose boring."
+		},
+		{
+			"endMs": 811061,
+			"startMs": 804409,
+			"text": "Alright, I think that is time, thanks again everyone."
+		}
+	],
+	"speaker": "Priya Natarajan",
+	"title": "Surviving a node failure on a small k3s cluster (sample)"
+}

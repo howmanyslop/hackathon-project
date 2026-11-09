@@ -1,0 +1,291 @@
+{
+	"segments": [
+		{
+			"endMs": 18701,
+			"startMs": 2710,
+			"text": "Alright, let us get started, thanks for picking this room over the free coffee."
+		},
+		{
+			"endMs": 46655,
+			"startMs": 19066,
+			"text": "My name is Diego, I lead a small backend team, and these days a lot of our pull requests are written by AI agents."
+		},
+		{
+			"endMs": 70049,
+			"startMs": 47139,
+			"text": "I want to talk about how reviewing those pull requests is different, and what we changed to keep quality up."
+		},
+		{
+			"endMs": 84458,
+			"startMs": 70406,
+			"text": "First, a confession, for the first month we reviewed agent pull requests exactly like human ones."
+		},
+		{
+			"endMs": 93635,
+			"startMs": 84986,
+			"text": "That did not go well, and the reason is interesting."
+		},
+		{
+			"endMs": 110889,
+			"startMs": 94070,
+			"text": "When a person writes code, the size of the change roughly matches how much they thought about it."
+		},
+		{
+			"endMs": 134366,
+			"startMs": 111271,
+			"text": "With an agent, a twelve hundred line change can show up in four minutes, and nobody thought about all of it."
+		},
+		{
+			"endMs": 157298,
+			"startMs": 135308,
+			"text": "So the reviewer becomes the first person to really think about the change, and that is a lot of pressure."
+		},
+		{
+			"endMs": 175365,
+			"startMs": 157812,
+			"text": "The first rule we made was simple: small pull requests only, no matter who or what wrote them."
+		},
+		{
+			"endMs": 199887,
+			"startMs": 176164,
+			"text": "If an agent produces a big change, we ask it to split the work into steps that each make sense alone."
+		},
+		{
+			"endMs": 215749,
+			"startMs": 200721,
+			"text": "The second rule is that the person who started the agent owns the pull request."
+		},
+		{
+			"endMs": 228651,
+			"startMs": 216333,
+			"text": "They read every line before asking for review, and they answer questions about it."
+		},
+		{
+			"endMs": 246458,
+			"startMs": 228959,
+			"text": "You cannot say the agent did it, just like you cannot say the compiler did it."
+		},
+		{
+			"endMs": 255724,
+			"startMs": 246895,
+			"text": "Third, we pay a lot more attention to tests."
+		},
+		{
+			"endMs": 274727,
+			"startMs": 256048,
+			"text": "Agents are very good at writing tests that pass, which is not the same as tests that check anything useful."
+		},
+		{
+			"endMs": 292741,
+			"startMs": 274994,
+			"text": "We see tests that mock everything and then assert that the mock was called, which proves nothing."
+		},
+		{
+			"endMs": 307308,
+			"startMs": 293257,
+			"text": "So in review we ask one question for every test: what bug would make this fail."
+		},
+		{
+			"endMs": 313896,
+			"startMs": 307785,
+			"text": "If nobody can answer, the test goes."
+		},
+		{
+			"endMs": 329114,
+			"startMs": 314270,
+			"text": "Fourth, we look for things that are technically fine but do not fit the codebase."
+		},
+		{
+			"endMs": 348148,
+			"startMs": 329711,
+			"text": "A new helper that duplicates one we already have, or a second way of doing configuration."
+		},
+		{
+			"endMs": 369200,
+			"startMs": 348825,
+			"text": "Agents do not always know your conventions, unless you write them down where the agent can read them."
+		},
+		{
+			"endMs": 387406,
+			"startMs": 369724,
+			"text": "That turned out to be the most useful thing we did, honestly, we wrote our conventions down."
+		},
+		{
+			"endMs": 408944,
+			"startMs": 387700,
+			"text": "We keep a short file in the repo that says what we care about, and both people and agents read it."
+		},
+		{
+			"endMs": 429875,
+			"startMs": 409438,
+			"text": "We also use an automated reviewer that reads that same file and leaves comments on every pull request."
+		},
+		{
+			"endMs": 447994,
+			"startMs": 430290,
+			"text": "It catches the boring stuff, like a missing secret check or an API route that skips our usual checks."
+		},
+		{
+			"endMs": 464876,
+			"startMs": 448429,
+			"text": "That frees the human reviewer to think about design, which is the part that really needs a person."
+		},
+		{
+			"endMs": 484205,
+			"startMs": 465445,
+			"text": "Now, some patterns that show up a lot in agent code that I want you to watch for."
+		},
+		{
+			"endMs": 501222,
+			"startMs": 484998,
+			"text": "Defensive checks for things that cannot happen, which make code longer and hide real errors."
+		},
+		{
+			"endMs": 512626,
+			"startMs": 501768,
+			"text": "Comments that repeat what the code says, instead of explaining why."
+		},
+		{
+			"endMs": 524442,
+			"startMs": 513564,
+			"text": "Error handling that catches everything and logs it, so failures disappear quietly."
+		},
+		{
+			"endMs": 545850,
+			"startMs": 525047,
+			"text": "And confident looking code that calls an API method that does not exist in your version of the library."
+		},
+		{
+			"endMs": 560181,
+			"startMs": 546356,
+			"text": "That last one is the scariest, because it often looks right and only fails at runtime."
+		},
+		{
+			"endMs": 582996,
+			"startMs": 560449,
+			"text": "Type checking and running the tests in CI catches most of it, so make sure those run on every pull request."
+		},
+		{
+			"endMs": 598726,
+			"startMs": 583810,
+			"text": "Let me show you a real example, names changed to protect the innocent."
+		},
+		{
+			"endMs": 612448,
+			"startMs": 599502,
+			"text": "Here an agent added retry logic around a payment call, which looks responsible."
+		},
+		{
+			"endMs": 624659,
+			"startMs": 613155,
+			"text": "But the call was not idempotent, so a retry could charge someone twice."
+		},
+		{
+			"endMs": 643269,
+			"startMs": 625574,
+			"text": "The tests passed, the linter was happy, and only a person who knew the payment provider caught it."
+		},
+		{
+			"endMs": 655215,
+			"startMs": 644025,
+			"text": "That is the kind of thing human review is for now."
+		},
+		{
+			"endMs": 677624,
+			"startMs": 655867,
+			"text": "So, the summary: keep changes small, the person who ran the agent owns the change, and question every test."
+		},
+		{
+			"endMs": 698329,
+			"startMs": 678189,
+			"text": "Write your conventions down, let a bot handle the boring checks, and spend human attention on design and risk."
+		},
+		{
+			"endMs": 710287,
+			"startMs": 698814,
+			"text": "Thank you, that is all I have, let us take some questions."
+		},
+		{
+			"endMs": 717796,
+			"startMs": 715111,
+			"text": "Yeah, go ahead."
+		},
+		{
+			"endMs": 736885,
+			"startMs": 718101,
+			"text": "Do you worry about the cost of running all these agents and reviewers, is it actually cheaper?"
+		},
+		{
+			"endMs": 745017,
+			"startMs": 737149,
+			"text": "So the question is whether it is actually cheaper."
+		},
+		{
+			"endMs": 767146,
+			"startMs": 745528,
+			"text": "Um, the model bill is small compared to salaries, the real cost is review time, which is why we keep changes small."
+		},
+		{
+			"endMs": 782385,
+			"startMs": 767452,
+			"text": "If review time goes up and quality goes down, it is not cheaper, so we track both."
+		},
+		{
+			"endMs": 787485,
+			"startMs": 783025,
+			"text": "Next, in the middle."
+		},
+		{
+			"endMs": 802164,
+			"startMs": 788421,
+			"text": "Do you tell reviewers which pull requests were written by an agent?"
+		},
+		{
+			"endMs": 820619,
+			"startMs": 803027,
+			"text": "Yes, we label them, not to judge them, but because the reviewer should know to check tests more carefully."
+		},
+		{
+			"endMs": 831568,
+			"startMs": 821169,
+			"text": "Hi, what goes into that conventions file, like how long is it?"
+		},
+		{
+			"endMs": 852716,
+			"startMs": 832007,
+			"text": "It is about a page, things like where config lives, how we name things, and which mistakes we never want to see again."
+		},
+		{
+			"endMs": 867941,
+			"startMs": 853422,
+			"text": "So, yeah, every time we find the same mistake twice in review, it goes into the file."
+		},
+		{
+			"endMs": 870848,
+			"startMs": 868563,
+			"text": "One more."
+		},
+		{
+			"endMs": 881161,
+			"startMs": 871658,
+			"text": "Has an agent ever caught something a human reviewer missed?"
+		},
+		{
+			"endMs": 900889,
+			"startMs": 881446,
+			"text": "Yes, quite often actually, mostly small things like an unused variable or an error that was swallowed."
+		},
+		{
+			"endMs": 917070,
+			"startMs": 901455,
+			"text": "It is a good partner for the boring parts, and that is exactly how we use it."
+		},
+		{
+			"endMs": 924333,
+			"startMs": 917507,
+			"text": "Thanks everyone, enjoy the rest of the conference."
+		}
+	],
+	"speaker": "Diego Fairbanks",
+	"title": "Reviewing AI-written pull requests (sample)"
+}

@@ -1,0 +1,312 @@
+{
+	"qaStartMs": 646667,
+	"segments": [
+		{
+			"endMs": 14593,
+			"startMs": 3819,
+			"text": "Good morning, everybody, can the back row hear me okay, great."
+		},
+		{
+			"endMs": 32008,
+			"startMs": 15370,
+			"text": "I am Marcus, and I want to explain semantic search without a single equation on the slides."
+		},
+		{
+			"endMs": 52900,
+			"startMs": 32928,
+			"text": "Let us start with a problem we have all had, you search for something and the right answer does not show up."
+		},
+		{
+			"endMs": 68524,
+			"startMs": 53205,
+			"text": "You typed laptop, but the document says notebook computer, and keyword search has no idea those are related."
+		},
+		{
+			"endMs": 88256,
+			"startMs": 69470,
+			"text": "Keyword search is matching letters, and it is very good at that, but it does not know what words mean."
+		},
+		{
+			"endMs": 103117,
+			"startMs": 88907,
+			"text": "Semantic search tries to match meaning instead, and the trick behind it is something called an embedding."
+		},
+		{
+			"endMs": 116685,
+			"startMs": 103770,
+			"text": "An embedding is just a list of numbers that a model produces for a piece of text."
+		},
+		{
+			"endMs": 132641,
+			"startMs": 117584,
+			"text": "The model was trained so that texts with similar meanings get lists of numbers that are close together."
+		},
+		{
+			"endMs": 145842,
+			"startMs": 133086,
+			"text": "So laptop and notebook computer end up near each other, and banana ends up somewhere far away."
+		},
+		{
+			"endMs": 159008,
+			"startMs": 146305,
+			"text": "I like to picture it as a giant map where every sentence gets a pin."
+		},
+		{
+			"endMs": 174146,
+			"startMs": 159370,
+			"text": "Searching then becomes: put a pin for my question on the map and look at the nearest pins."
+		},
+		{
+			"endMs": 184321,
+			"startMs": 174449,
+			"text": "That is really the whole idea, and everything else is engineering around it."
+		},
+		{
+			"endMs": 195959,
+			"startMs": 185151,
+			"text": "Let us talk about that engineering, because that is where the real decisions are."
+		},
+		{
+			"endMs": 208052,
+			"startMs": 196312,
+			"text": "First decision, what do you embed, whole documents, paragraphs, or single sentences."
+		},
+		{
+			"endMs": 222981,
+			"startMs": 208930,
+			"text": "If you embed a whole document, the pin ends up somewhere vague in the middle of everything it covers."
+		},
+		{
+			"endMs": 237711,
+			"startMs": 223443,
+			"text": "If you embed single sentences, each pin is sharp, but you lose the context around it."
+		},
+		{
+			"endMs": 254259,
+			"startMs": 238113,
+			"text": "Most teams land on chunks of a paragraph or so, and that is a reasonable place to start."
+		},
+		{
+			"endMs": 261085,
+			"startMs": 254864,
+			"text": "Second decision, which model makes the embeddings."
+		},
+		{
+			"endMs": 276349,
+			"startMs": 261820,
+			"text": "We used a Jina embedding model hosted by Elastic, so we did not have to run any GPUs ourselves."
+		},
+		{
+			"endMs": 291945,
+			"startMs": 277098,
+			"text": "That matters more than people think, because running models yourself is a whole second job."
+		},
+		{
+			"endMs": 303815,
+			"startMs": 292672,
+			"text": "Third decision, where do the numbers live and how do you search them."
+		},
+		{
+			"endMs": 319487,
+			"startMs": 304384,
+			"text": "We put them in Elasticsearch with a semantic text field, which embeds the text for you when you index it."
+		},
+		{
+			"endMs": 337451,
+			"startMs": 319841,
+			"text": "So our app sends plain text, and Elastic calls the model and stores the numbers next to the text."
+		},
+		{
+			"endMs": 350823,
+			"startMs": 337972,
+			"text": "At query time it embeds the question the same way and finds the nearest neighbors."
+		},
+		{
+			"endMs": 365968,
+			"startMs": 351238,
+			"text": "Now, the part nobody tells you about is that semantic search is sometimes worse than keyword search."
+		},
+		{
+			"endMs": 384048,
+			"startMs": 366428,
+			"text": "If someone searches for an error code or a product SKU, exact matching is exactly what they want."
+		},
+		{
+			"endMs": 397235,
+			"startMs": 384838,
+			"text": "Embeddings will happily return something that feels related but has the wrong number in it."
+		},
+		{
+			"endMs": 415490,
+			"startMs": 398041,
+			"text": "So for anything with codes, names, or IDs, we combine both kinds of search and merge the results."
+		},
+		{
+			"endMs": 427620,
+			"startMs": 416280,
+			"text": "That is usually called hybrid search, and it fixed most of our complaints overnight."
+		},
+		{
+			"endMs": 447653,
+			"startMs": 428528,
+			"text": "Another thing that helped a lot was a reranker, which is a second model that looks at the top results."
+		},
+		{
+			"endMs": 462909,
+			"startMs": 448170,
+			"text": "The first search is fast and a bit rough, the reranker is slower but much more careful."
+		},
+		{
+			"endMs": 476529,
+			"startMs": 463330,
+			"text": "You only run it on the top twenty or so hits, so the cost stays reasonable."
+		},
+		{
+			"endMs": 489196,
+			"startMs": 477007,
+			"text": "Let me show you a small example from our support docs, before and after."
+		},
+		{
+			"endMs": 501414,
+			"startMs": 489960,
+			"text": "Before, searching for my bill is wrong returned an article about changing your password."
+		},
+		{
+			"endMs": 515265,
+			"startMs": 501892,
+			"text": "After, it returned the article about disputing a charge, which was what people actually needed."
+		},
+		{
+			"endMs": 528894,
+			"startMs": 515714,
+			"text": "Nobody used the word dispute in their search, and that is exactly the point."
+		},
+		{
+			"endMs": 536948,
+			"startMs": 529554,
+			"text": "A few practical tips before I wrap up."
+		},
+		{
+			"endMs": 553122,
+			"startMs": 537430,
+			"text": "Keep your source of truth in a normal database, and treat the search index as a copy you can rebuild."
+		},
+		{
+			"endMs": 567899,
+			"startMs": 553876,
+			"text": "Log what people search for and what they click, because that is how you find bad results."
+		},
+		{
+			"endMs": 583011,
+			"startMs": 568178,
+			"text": "Do not chase the newest embedding model every month, pick one and measure before switching."
+		},
+		{
+			"endMs": 597228,
+			"startMs": 583547,
+			"text": "And test with real questions from real users, not the ones you invented on a whiteboard."
+		},
+		{
+			"endMs": 611357,
+			"startMs": 597676,
+			"text": "So, to recap, embeddings are pins on a map, search is finding the nearest pins."
+		},
+		{
+			"endMs": 629780,
+			"startMs": 611959,
+			"text": "Pick your chunk size, pick a hosted model, keep keywords around for exact things, and add a reranker when you can."
+		},
+		{
+			"endMs": 643126,
+			"startMs": 630387,
+			"text": "That is it from me, thank you, and let us do some questions."
+		},
+		{
+			"endMs": 650435,
+			"startMs": 646667,
+			"text": "Yes, in the blue shirt."
+		},
+		{
+			"endMs": 662880,
+			"startMs": 650917,
+			"text": "So how expensive is this, like does embedding everything cost a lot of money?"
+		},
+		{
+			"endMs": 668975,
+			"startMs": 663475,
+			"text": "Good question, the question is about cost."
+		},
+		{
+			"endMs": 692583,
+			"startMs": 669864,
+			"text": "Um, for us it was cheaper than I expected, you pay once when you index and then a tiny bit for each query."
+		},
+		{
+			"endMs": 707712,
+			"startMs": 693457,
+			"text": "The bigger cost was honestly our own time tuning chunk sizes, not the model bill."
+		},
+		{
+			"endMs": 713292,
+			"startMs": 708452,
+			"text": "Next, over on the left."
+		},
+		{
+			"endMs": 727990,
+			"startMs": 713894,
+			"text": "What happens when you change the embedding model later, do you have to redo everything?"
+		},
+		{
+			"endMs": 745405,
+			"startMs": 728326,
+			"text": "Yes, you have to re-embed everything, because numbers from two models do not live on the same map."
+		},
+		{
+			"endMs": 768047,
+			"startMs": 745777,
+			"text": "That is another reason to keep the source of truth in a database, so rebuilding the index is just a script you run."
+		},
+		{
+			"endMs": 776210,
+			"startMs": 768501,
+			"text": "Hi, does this work for languages other than English?"
+		},
+		{
+			"endMs": 791855,
+			"startMs": 776642,
+			"text": "So, yeah, the model we used is multilingual, and a question in Spanish can find an English answer."
+		},
+		{
+			"endMs": 807497,
+			"startMs": 792756,
+			"text": "It is not perfect, but it is surprisingly good, and you should test it with your own data."
+		},
+		{
+			"endMs": 811562,
+			"startMs": 808152,
+			"text": "Last one, I think."
+		},
+		{
+			"endMs": 827545,
+			"startMs": 811898,
+			"text": "How do you know if the results actually got better and it is not just a feeling?"
+		},
+		{
+			"endMs": 854694,
+			"startMs": 827969,
+			"text": "We kept a list of about a hundred real questions with the answer we expected, and we checked how often it showed up in the top three."
+		},
+		{
+			"endMs": 871184,
+			"startMs": 854972,
+			"text": "It went from about half to about eight out of ten, which was enough for us to stop arguing about it."
+		},
+		{
+			"endMs": 884150,
+			"startMs": 871910,
+			"text": "Thank you all, I will be around after if you want to chat."
+		}
+	],
+	"speaker": "Marcus Oyelaran",
+	"title": "Semantic search with embeddings, explained simply (sample)"
+}

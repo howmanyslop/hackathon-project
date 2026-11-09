@@ -1,0 +1,302 @@
+{
+	"qaStartMs": 696482,
+	"segments": [
+		{
+			"endMs": 11861,
+			"startMs": 3940,
+			"text": "Hello, hello, okay, the mic is on, great."
+		},
+		{
+			"endMs": 29427,
+			"startMs": 12469,
+			"text": "I am Hannah, I work on platform tooling, and I want to take some of the magic out of auto-instrumentation."
+		},
+		{
+			"endMs": 44532,
+			"startMs": 30238,
+			"text": "Raise your hand if you have turned on auto-instrumentation and then wondered what it is actually doing."
+		},
+		{
+			"endMs": 60252,
+			"startMs": 44796,
+			"text": "Yeah, that is most of the room, and that was me for about two years."
+		},
+		{
+			"endMs": 69495,
+			"startMs": 61167,
+			"text": "Let us start with what OpenTelemetry is, in one sentence."
+		},
+		{
+			"endMs": 90275,
+			"startMs": 69887,
+			"text": "It is a shared format and a set of libraries for traces, metrics, and logs, so every vendor speaks the same language."
+		},
+		{
+			"endMs": 114599,
+			"startMs": 90724,
+			"text": "A trace is the story of one request, broken into spans, where each span is one step with a start and an end."
+		},
+		{
+			"endMs": 127239,
+			"startMs": 115065,
+			"text": "Auto-instrumentation is a way to get those spans without writing tracing code in your app."
+		},
+		{
+			"endMs": 141008,
+			"startMs": 127706,
+			"text": "So how does it do that, and the answer depends a lot on the language."
+		},
+		{
+			"endMs": 157829,
+			"startMs": 141504,
+			"text": "In Java, there is an agent that rewrites classes as they load and wraps known libraries."
+		},
+		{
+			"endMs": 176834,
+			"startMs": 158412,
+			"text": "In Node, it hooks into module loading, so when your app requires the HTTP module, it gets a wrapped version back."
+		},
+		{
+			"endMs": 191037,
+			"startMs": 177513,
+			"text": "In Python, it patches functions at import time in a fairly similar way."
+		},
+		{
+			"endMs": 209400,
+			"startMs": 191349,
+			"text": "In every case, the trick is the same: it knows popular libraries and wraps their important functions."
+		},
+		{
+			"endMs": 232237,
+			"startMs": 210012,
+			"text": "So when your app makes a database query, the wrapped driver starts a span, runs the query, and ends the span."
+		},
+		{
+			"endMs": 250610,
+			"startMs": 233165,
+			"text": "It also passes a trace ID along in headers, so the next service can continue the same story."
+		},
+		{
+			"endMs": 267080,
+			"startMs": 251389,
+			"text": "That header passing is called context propagation, and it is the part that makes distributed tracing work."
+		},
+		{
+			"endMs": 283818,
+			"startMs": 267843,
+			"text": "Now in Kubernetes, there is one more layer, which is how the agent gets into your container at all."
+		},
+		{
+			"endMs": 296601,
+			"startMs": 284223,
+			"text": "An operator watches for new pods and changes them as they are created."
+		},
+		{
+			"endMs": 311588,
+			"startMs": 296870,
+			"text": "It adds an init container that copies the instrumentation files into a shared volume."
+		},
+		{
+			"endMs": 328622,
+			"startMs": 312025,
+			"text": "Then it sets a few environment variables, so the runtime loads those files when your app starts."
+		},
+		{
+			"endMs": 344371,
+			"startMs": 329025,
+			"text": "Your image does not change, your code does not change, the pod just starts with extra stuff attached."
+		},
+		{
+			"endMs": 364691,
+			"startMs": 345105,
+			"text": "That is why the pod needs to restart once after you turn it on, the changes only happen at creation."
+		},
+		{
+			"endMs": 378525,
+			"startMs": 365064,
+			"text": "Okay, so what do you get for free, and what do you not get."
+		},
+		{
+			"endMs": 394066,
+			"startMs": 379108,
+			"text": "You get spans for incoming HTTP requests, outgoing HTTP calls, and most popular database drivers."
+		},
+		{
+			"endMs": 405432,
+			"startMs": 394859,
+			"text": "You get timing, status codes, and the route that was matched."
+		},
+		{
+			"endMs": 421603,
+			"startMs": 405790,
+			"text": "You usually get logs connected to the trace, if your logger is one it knows."
+		},
+		{
+			"endMs": 431527,
+			"startMs": 421911,
+			"text": "What you do not get is anything about your business logic."
+		},
+		{
+			"endMs": 447557,
+			"startMs": 432060,
+			"text": "It does not know that this function is the checkout step or that this loop is processing an order."
+		},
+		{
+			"endMs": 465913,
+			"startMs": 447907,
+			"text": "For that, you add a few manual spans yourself, and that is fine, they mix with the automatic ones."
+		},
+		{
+			"endMs": 482158,
+			"startMs": 466738,
+			"text": "The other thing you do not get is free performance, there is a small cost to all this wrapping."
+		},
+		{
+			"endMs": 501060,
+			"startMs": 482472,
+			"text": "In our tests it was a few percent of CPU, which was fine for us, but measure it for yourself."
+		},
+		{
+			"endMs": 517054,
+			"startMs": 501937,
+			"text": "Sampling also matters a lot, and the defaults are not always what you want."
+		},
+		{
+			"endMs": 536903,
+			"startMs": 517924,
+			"text": "If you keep every trace from a busy service, your bill and your storage will both tell you about it."
+		},
+		{
+			"endMs": 556076,
+			"startMs": 537436,
+			"text": "We keep all errors and a small percentage of normal requests, and that has been enough to debug almost anything."
+		},
+		{
+			"endMs": 576493,
+			"startMs": 556872,
+			"text": "One more gotcha, if you already added an OpenTelemetry SDK by hand, do not also turn on the operator."
+		},
+		{
+			"endMs": 594394,
+			"startMs": 577262,
+			"text": "You end up with two sets of instrumentation fighting, and duplicated spans that are very confusing."
+		},
+		{
+			"endMs": 607807,
+			"startMs": 595179,
+			"text": "Pick one approach per service, and write down which one you picked."
+		},
+		{
+			"endMs": 626434,
+			"startMs": 608322,
+			"text": "Let me show the trace from our demo app, this is one request to the search page."
+		},
+		{
+			"endMs": 645646,
+			"startMs": 626891,
+			"text": "You can see the incoming request, then the database query, then the call out to the search service."
+		},
+		{
+			"endMs": 663551,
+			"startMs": 646036,
+			"text": "Nobody on the team wrote a single line of tracing code for this, and that still makes me happy."
+		},
+		{
+			"endMs": 682784,
+			"startMs": 664202,
+			"text": "So, wrap up: it wraps known libraries, it propagates context in headers, and the operator injects it at pod creation."
+		},
+		{
+			"endMs": 692054,
+			"startMs": 683108,
+			"text": "Thanks for listening, and I would love some questions."
+		},
+		{
+			"endMs": 700604,
+			"startMs": 696482,
+			"text": "Yes, you in the front."
+		},
+		{
+			"endMs": 715793,
+			"startMs": 700979,
+			"text": "So, um, what happens to the traces if the node running the collector dies?"
+		},
+		{
+			"endMs": 734394,
+			"startMs": 716201,
+			"text": "Okay, so the question is what happens to traces when a node with the collector goes away."
+		},
+		{
+			"endMs": 751157,
+			"startMs": 735302,
+			"text": "Spans that were still in memory on that node are lost, there is no magic there."
+		},
+		{
+			"endMs": 772565,
+			"startMs": 751553,
+			"text": "Run the collector on more than one node, and the apps on other nodes keep sending traces to the copies that are still alive."
+		},
+		{
+			"endMs": 775111,
+			"startMs": 772955,
+			"text": "Over here."
+		},
+		{
+			"endMs": 781678,
+			"startMs": 775585,
+			"text": "Does auto-instrumentation slow down cold starts?"
+		},
+		{
+			"endMs": 800357,
+			"startMs": 782024,
+			"text": "A little, yes, loading the extra files adds some startup time, in Node it was under a second for us."
+		},
+		{
+			"endMs": 815553,
+			"startMs": 801105,
+			"text": "If you run something where cold start really matters, like serverless functions, measure it before you commit."
+		},
+		{
+			"endMs": 830003,
+			"startMs": 816486,
+			"text": "Hi, can I turn it off for one service without touching the others?"
+		},
+		{
+			"endMs": 845478,
+			"startMs": 830418,
+			"text": "Yes, the operator looks at annotations and namespaces, so you can leave one deployment out."
+		},
+		{
+			"endMs": 863701,
+			"startMs": 846255,
+			"text": "In our setup we only enable it for one namespace on purpose, so it leaves other teams' work alone."
+		},
+		{
+			"endMs": 865241,
+			"startMs": 864382,
+			"text": "Next."
+		},
+		{
+			"endMs": 873285,
+			"startMs": 865817,
+			"text": "How much does all this data cost to keep?"
+		},
+		{
+			"endMs": 885238,
+			"startMs": 873909,
+			"text": "So, yeah, the honest answer is it depends on sampling more than anything else."
+		},
+		{
+			"endMs": 903797,
+			"startMs": 886055,
+			"text": "Keeping all errors and a small slice of normal traffic kept our bill boring, which is what you want."
+		},
+		{
+			"endMs": 915017,
+			"startMs": 904065,
+			"text": "Okay, I think we are out of time, thank you so much."
+		}
+	],
+	"speaker": "Hannah Lindqvist",
+	"title": "What OpenTelemetry auto-instrumentation actually does (sample)"
+}
