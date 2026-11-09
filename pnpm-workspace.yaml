@@ -1,0 +1,273 @@
+autoInstallPeers: true
+blockExoticSubdeps: true
+catalogMode: prefer
+cleanupUnusedCatalogs: true
+enableGlobalVirtualStore: true
+engineStrict: true
+minimumReleaseAge: 1440
+
+minimumReleaseAgeExclude:
+  - "@biomejs/*"
+  - "@cloudflare/*"
+  - "@gdp-ts/core@0.1.0"
+  - "@isentinel/*"
+  - "@jsr/cliffy__*"
+  - "@opencode/*"
+  - "@oxfmt/*"
+  - "@oxlint/*"
+  - "@oxlint-tsgolint/*"
+  - "@pnpm/exe.*"
+  - "@pobammer-ts/*"
+  - "@tsrs/*"
+  - "@typescript-eslint/*"
+  - "@vitest/*"
+  - "@voidzero-dev/*"
+  - cf
+  - miniflare
+  - oxfmt
+  - oxlint
+  - oxlint-tsgolint
+  - playwright-core@1.65.0
+  - skills
+  - tsrs
+  - vite-plus
+  - vitest
+
+minimumReleaseAgeExcludePrune: true
+minimumReleaseAgeStrict: true
+resolutionMode: time-based
+shamefullyHoist: false
+shellEmulator: true
+strictDepBuilds: true
+strictPeerDependencies: false
+trustLockfile: true
+trustPolicy: no-downgrade
+
+trustPolicyExclude:
+  - "@tsrs/*"
+  - skills
+  - tsrs
+
+trustPolicyIgnoreAfter: 10080
+
+packages:
+  - .claude
+  - .opencode
+  - .opencode/packages/plugins/*
+  - apps/*
+  - benchmarks
+  - packages/*
+  - scripts
+  - tools/*
+  - turbo/generators
+
+overrides:
+  "@isentinel/eslint-config>@e18e/eslint-plugin": catalog:lint
+  "@isentinel/eslint-config>@pobammer-ts/small-rules": catalog:lint
+  "@isentinel/eslint-config>eslint-plugin-jsdoc": catalog:lint
+  "@isentinel/eslint-config>eslint-plugin-oxfmt": catalog:lint
+  "@isentinel/eslint-config>eslint-plugin-perfectionist": catalog:lint
+  "@isentinel/eslint-config>eslint-plugin-react-jsx": catalog:lint
+  "@isentinel/eslint-config>eslint-plugin-react-naming-convention": catalog:lint
+  "@isentinel/eslint-config>eslint-plugin-react-x": catalog:lint
+  "@isentinel/eslint-config>eslint-plugin-sonarjs": catalog:lint
+  "@isentinel/eslint-config>eslint-plugin-unicorn": catalog:lint
+  oxlint: catalog:lint
+  vite@*: catalog:tooling
+  vitest@*: catalog:tooling
+
+patchedDependencies:
+  "@isentinel/eslint-config@6.3.0": patches/@isentinel__eslint-config@6.3.0.patch
+  react-doctor@0.9.22: patches/react-doctor@0.9.22.patch
+
+catalogs:
+  benchmark:
+    "@cfworker/json-schema": 4.1.6
+    "@earendil-works/pi-schema": 1.5.0
+    "@faker-js/faker": 10.6.0
+    "@mitata/counters": 0.0.8
+    mitata: 1.0.34
+    typebox: 1.4.4
+  build:
+    "@arethetypeswrong/core": 0.18.5
+    publint: 0.3.25
+  cf:
+    "@cloudflare/vite-plugin": 2.0.0-beta.v.4
+  commitlint:
+    "@commitlint/cli": 21.2.4
+    "@commitlint/config-conventional": 21.2.4
+    "@commitlint/types": 21.2.3
+  database:
+    drizzle-kit: 0.31.11
+    drizzle-orm: 0.45.4
+  frontend:
+    "@base-ui/react": 1.9.0
+    class-variance-authority: 0.7.1
+    cn: 0.5.2
+    react: 19.3.1
+    react-dom: 19.3.1
+    tailwindcss: 4.3.4
+    tw-animate-css: 1.4.0
+  lint:
+    "@biomejs/biome": 2.6.6
+    "@e18e/eslint-plugin": 0.8.1
+    "@isentinel/eslint-config": 6.3.0
+    "@pobammer-ts/small-rules": 3.11.0
+    "@vitest/eslint-plugin": 1.6.28
+    eslint: 10.14.0
+    eslint-plugin-antfu: 3.3.1
+    eslint-plugin-astro: 3.2.1
+    eslint-plugin-better-max-params: 1.0.0
+    eslint-plugin-comment-length: 2.3.1
+    eslint-plugin-de-morgan: 2.3.0
+    eslint-plugin-eslint-plugin: 7.6.2
+    eslint-plugin-flawless: 1.14.1
+    eslint-plugin-jest-extended: 3.0.1
+    eslint-plugin-jsdoc: 65.4.4
+    eslint-plugin-n: 18.5.0
+    eslint-plugin-oxfmt: 0.31.0
+    eslint-plugin-perfectionist: 5.13.0
+    eslint-plugin-pnpm: 1.9.1
+    eslint-plugin-react-jsx: 5.28.8
+    eslint-plugin-react-naming-convention: 5.28.8
+    eslint-plugin-react-x: 5.28.8
+    eslint-plugin-sonarjs: 4.2.2
+    eslint-plugin-storybook: 10.6.6
+    eslint-plugin-unicorn: 79.0.0
+    eslint-plugin-unused-imports: 4.4.1
+    fallow: 3.39.0
+    oxfmt: 0.77.0
+    oxlint: 1.92.0
+    oxlint-plugin-react-doctor: 0.9.22
+    oxlint-tsgolint: 7.0.2006
+  node26:
+    "@types/node": ^26.6.6
+  opencode2:
+    "@opencode/plugin": 2.2.5
+    "@opencode/schema": 2.2.5
+    effect: 4.0.6
+  orpc:
+    "@orpc/client": 1.16.1
+    "@orpc/server": 1.16.1
+  prod:
+    "@gdp-ts/core": 0.1.0
+    arktype: 2.2.9
+    confbox: 0.3.2
+    # eslint-disable-next-line pnpm/yaml-no-duplicate-catalog-item -- required
+    effect: 4.1.2
+  scripts:
+    "@cliffy/command": jsr:1.3.1
+    consola: 3.4.2
+    empathic: 2.1.0
+    jsonc-parser: 3.3.1
+    just-diff: 6.0.2
+    tinyexec: 1.3.1
+    tslog: 5.4.0
+  storybook:
+    "@chromatic-com/storybook": 5.6.0
+    "@storybook/addon-a11y": 10.6.6
+    "@storybook/addon-docs": 10.6.6
+    "@storybook/addon-mcp": 10.6.6
+    "@storybook/addon-vitest": 10.6.6
+    "@storybook/tanstack-react": 10.6.6
+    storybook: 10.6.6
+  tanstack:
+    "@clerk/tanstack-react-start": 1.7.11
+    "@tanstack/devtools-vite": 0.8.6
+    "@tanstack/react-devtools": 0.10.14
+    "@tanstack/react-query": 5.106.1
+    "@tanstack/react-query-devtools": 5.106.1
+    "@tanstack/react-router": 1.170.46
+    "@tanstack/react-router-devtools": 1.167.2
+    "@tanstack/react-router-ssr-query": 1.167.3
+    "@tanstack/react-start": 1.169.4
+  test:
+    "@vitest/coverage-istanbul": 5.1.0
+    "@vitest/coverage-v8": 5.1.0
+    jest-extended: 7.0.0
+  tooling:
+    "@isentinel/hooks": 1.7.0
+    "@mdx-js/language-server": 0.6.4
+    "@pobammer-ts/lsp-mux": 3.2.0
+    "@turbo/gen": 2.11.10
+    "@vitest/browser-playwright": 5.1.0
+    cf: 1.0.0-beta.28
+    clerk: 4.1.0
+    jiti: 2.7.0
+    playwright: 1.65.0
+    react-doctor: 0.9.22
+    shadcn: 4.23.0
+    sherif: 1.13.0
+    skills: 1.7.6
+    tsrs: 0.22.0-ts7.1.0-beta
+    turbo: 2.11.10
+    typescript: npm:@typescript/typescript6@^6.0.2
+    vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+    vite-plus: 1.5.0
+    vitest: 5.1.0
+  types:
+    "@total-typescript/ts-reset": 0.6.1
+    "@types/bun": 1.4.4
+    # eslint-disable-next-line pnpm/yaml-no-duplicate-catalog-item -- packages pin different @types/node ranges
+    "@types/node": ^26.6.6
+    "@types/react": 19.3.0
+    "@types/react-dom": 19.3.0
+    type-fest: 5.10.0
+  vite:
+    "@tailwindcss/vite": 4.3.4
+    "@vitejs/plugin-react": 6.2.1
+  web:
+    "@orpc/tanstack-query": ^1.13.6
+    "@rolldown/plugin-babel": ^0.2.3
+    "@tailwindcss/typography": ^0.5.16
+    babel-plugin-react-compiler: ^1.0.0
+    tsx: ^4.21.0
+    zod: ^4.3.6
+
+allowBuilds:
+  "@google/genai": true
+  "@openrouter/sdk": true
+  "@swc/core": false
+  esbuild: true
+  lightningcss: true
+  msgpackr-extract: true
+  onnxruntime-node: true
+  protobufjs: true
+  sharp: true
+  unrs-resolver: true
+  vue-demi: true
+  workerd: true
+
+packageExtensions:
+  "@tanstack/react-form@1.33.5":
+    dependencies:
+      "@types/react": 19.3.0
+  storybook@10:
+    dependencies:
+      "@storybook/react-vite": 10.6.1
+
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    "@astrojs/react>oxc-transform-react": 0.152.x
+    "@typescript-eslint/*>typescript": ">=6.0.0 <7.0.0"
+    vite: "*"
+    vitest: "*"
+
+permissions:
+  "@tanstack/devtools-vite":
+    skills: true
+  "@tanstack/react-router":
+    skills: true
+  "@tanstack/react-start":
+    skills: true
+  arktype:
+    skills: true
+  fallow:
+    skills: true
+
+strictSsl: true
+strictStorePkgContentCheck: true
+verifyStoreIntegrity: true

@@ -1,0 +1,38 @@
+name: Setup Playwright
+description: Install headless Chromium for the browser and end-to-end tests, cached per Playwright version.
+
+inputs:
+  app:
+    description: The app whose Playwright version picks the Chromium build.
+    default: apps/web
+
+runs:
+  using: composite
+  steps:
+    - id: version
+      name: Read the Playwright version
+      run: echo "playwright=$(pnpm --dir "${APP}" exec playwright --version | cut -d ' ' -f 2)" >> "${GITHUB_OUTPUT}"
+      env:
+        APP: ${{ inputs.app }}
+      shell: bash
+
+    - id: cache
+      name: Cache Chromium
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        key: playwright-${{ runner.os }}-${{ steps.version.outputs.playwright }}
+        path: ~/.cache/ms-playwright
+
+    - if: steps.cache.outputs.cache-hit != 'true'
+      name: Install Chromium
+      run: pnpm --dir "${APP}" exec playwright install --with-deps chromium
+      env:
+        APP: ${{ inputs.app }}
+      shell: bash
+
+    - if: steps.cache.outputs.cache-hit == 'true'
+      name: Install Chromium system packages
+      run: pnpm --dir "${APP}" exec playwright install-deps chromium
+      env:
+        APP: ${{ inputs.app }}
+      shell: bash

@@ -1,0 +1,477 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.6.6/schema.json",
+	"assist": {
+		"actions": {
+			"source": {
+				"noDuplicateClasses": "on",
+				// ESLint sorts imports.
+				"organizeImports": "off",
+				"preset": "recommended",
+				"useSortedAttributes": "off",
+				"useSortedEnumMembers": "on",
+				"useSortedInterfaceMembers": "off",
+				"useSortedPackageJson": "off",
+				"useSortedProperties": "on",
+				"useSortedSelectionSet": "on",
+				"useSortedTypeFields": "on"
+			}
+		}
+	},
+
+	"css": {
+		"parser": {
+			"cssModules": true,
+			"tailwindDirectives": true
+		}
+	},
+
+	"files": {
+		"includes": [
+			"**",
+			"!**/*.js",
+			"!**/package.json",
+			"!**/*-lock.{json,yaml}",
+
+			// Generated. Excluded with `!` so type-aware rules can still read them.
+			"!**/*.gen.ts",
+			"!**/{capture-,}worker-configuration.d.ts",
+			"!apps/*/.astro",
+			"!apps/*/drizzle/meta",
+
+			// Vendored or copied in.
+			"!apps/*/vendor",
+			"!apps/*/src/components/ui/**/*.tsx",
+			"!.agents/skills",
+			"!lighthouse-reports",
+
+			// Build output is never indexed.
+			"!!**/dist"
+		]
+	},
+
+	"formatter": {
+		"formatWithErrors": true,
+		"indentWidth": 4,
+		"lineWidth": 120,
+		"useEditorconfig": false
+	},
+
+	"html": {
+		"experimentalFullSupportEnabled": true,
+		"formatter": {
+			"bracketSameLine": true,
+			"indentScriptAndStyle": true,
+			"selfCloseVoidElements": "always",
+			"whitespaceSensitivity": "strict"
+		},
+		"parser": {
+			"interpolation": true
+		}
+	},
+
+	"javascript": {
+		// The Workers runtime's handler types come from the generated
+		// worker-configuration.d.ts, which Biome does not read.
+		"globals": [
+			"CaptureEnv",
+			"Env",
+			"ExecutionContext",
+			"ExportedHandler",
+			"Fetcher",
+			"FixedLengthStream",
+			"IncomingRequestCfProperties",
+			"R2Bucket",
+			"R2GetOptions",
+			"R2HTTPMetadata",
+			"R2ListOptions",
+			"R2Object",
+			"R2ObjectBody",
+			"R2Objects",
+			"R2PutOptions",
+			"RateLimit",
+			"ScheduledController"
+		]
+	},
+
+	"linter": {
+		// Framework domains are scoped to the apps in `overrides`.
+		"domains": {
+			"project": "all",
+			"test": "all",
+			"turborepo": "all",
+			"types": "all"
+		},
+		"rules": {
+			"a11y": {
+				"noLabelWithoutControl": {
+					"level": "error",
+					"options": { "inputComponents": ["Input"] }
+				}
+			},
+
+			"complexity": {
+				"noDivRegex": "error",
+				"noExcessiveCognitiveComplexity": {
+					"level": "error",
+					"options": { "maxAllowedComplexity": 15 }
+				},
+				// Temporarily disabled.
+				"noExcessiveNestedCallbacks": {
+					"level": "off",
+					"options": { "max": 5 }
+				},
+				"noExcessiveNestedTestSuites": "error",
+				"noExcessiveSelectorClasses": "error",
+				"noForEach": "error",
+				"noImplicitCoercions": "error",
+				"noRedundantDefaultExport": "error",
+				"noUnnecessaryTemplateExpression": "error",
+				"noUselessCatchBinding": "error",
+				"noUselessReturn": "error",
+				"noUselessStringConcat": "error",
+				"preset": "none",
+				"useArrayFind": "error",
+				"useArraySome": "error",
+				"useDateNow": "error",
+				"useFlatMap": "error",
+				"useLiteralKeys": "error",
+				"useMathMinMax": "error",
+				"useOptionalChain": "error",
+				"useRegexpTest": "error",
+				"useSimpleNumberKeys": "error",
+				"useWhile": "error"
+			},
+
+			"correctness": {
+				"noComponentHookFactories": "error",
+				"noGlobalDirnameFilename": "error",
+				"noJsxNamespace": "error",
+				"noUndeclaredDependencies": "off",
+				"noUndeclaredVariables": {
+					"level": "error",
+					"options": { "checkTypes": true }
+				},
+				"noUnresolvedImports": "off",
+				"noUnusedImports": "error",
+				"noUnusedInstantiation": "error",
+				"noUnusedPrivateClassMembers": "error",
+				"noUnusedVariables": "error",
+				"useImportExtensions": "off",
+				"useInlineScriptId": "error",
+				"useJsonImportAttributes": "off",
+				"useSingleJsDocAsterisk": "error"
+			},
+
+			"nursery": {
+				"noAstroSetHtmlDirective": "error",
+				"noBaseToString": "error",
+				"noBunModules": "error",
+				"noExtendNative": "error",
+				"noFloatingPromises": "error",
+				"noImpliedEval": "error",
+				"noInvalidFileInputAccept": "error",
+				"noInvalidPropertyInitValue": "error",
+				"noJsRestrictedProperties": "error",
+				"noJsonUnsafeValues": "error",
+				"noMisleadingReturnType": "off",
+				"noMisusedPromises": "error",
+				"noNegationInEqualityCheck": "error",
+				"noNonScalableViewport": "error",
+				"noObsoleteTags": "error",
+				"noRestrictedDependencies": "error",
+				"noReturnInFinally": "error",
+				"noTailwindArbitraryValue": "off",
+				"noThisOutsideOfClass": "error",
+				// Does not understand classes used from Astro files.
+				"noUndeclaredClasses": "off",
+				"noUndeclaredCustomProperties": "off",
+				"noUnmodifiedLoopCondition": "error",
+				"noUnsafeIframeSandbox": "error",
+				"noUnsafePlusOperands": "error",
+				// Does not see classes used from MDX.
+				"noUnusedClasses": "off",
+				"noUselessTypeConversion": "off",
+				"noXorAsExponentiation": "error",
+				"useAstroClientOnlyDirectiveValue": "error",
+				"useAwaitThenable": "error",
+				"useBetterDomTraversing": "error",
+				"useConsistentFunctionStyle": {
+					"level": "error",
+					"options": {
+						"allowArrowFunctions": false,
+						"style": "declaration"
+					}
+				},
+				"useConsistentObjectKeys": "error",
+				"useControlLabel": "error",
+				"useDisposables": "error",
+				"useExhaustiveSwitchCases": "error",
+				"useFlatMathMinMax": "error",
+				"useIncludes": "error",
+				"useModernMathApis": "error",
+				"useNamedLayer": "error",
+				"useNullishCoalescing": "error",
+				"useReactCompiler": {
+					"level": "error",
+					"options": { "compilationMode": "infer" }
+				},
+				"useReactNamingConvention": "error",
+				"useRegexpExec": "error",
+				"useStringStartsEndsWith": "error",
+				"useTailwindShorthandClasses": "error",
+				"useTailwindSortedClasses": "off",
+				"useValidTestTitle": "error"
+			},
+
+			"performance": {
+				"noAccumulatingSpread": "error",
+				"noDelete": "error",
+				"noJsxPropsBind": "off",
+				"noSyncScripts": "error",
+				"useDomNodeTextContent": "error",
+				"useTopLevelRegex": "error"
+			},
+
+			"security": {
+				"noDangerouslySetInnerHtml": "off",
+				"useIframeSandbox": "error"
+			},
+
+			"style": {
+				"noCommonJs": "error",
+				"noDescendingSpecificity": "error",
+				"noDoneCallback": "error",
+				"noExcessiveClassesPerFile": {
+					"level": "error",
+					"options": { "maxClasses": 3 }
+				},
+				"noExportedImports": "error",
+				"noHeadElement": "error",
+				"noImplicitBoolean": "error",
+				"noInferrableTypes": "error",
+				"noJsxLiterals": "error",
+				"noMultiAssign": "error",
+				"noMultilineString": "error",
+				"noNamespace": "error",
+				"noNegationElse": "error",
+				"noNestedTernary": "error",
+				"noNonNullAssertion": "off",
+				"noParameterAssign": "error",
+				"noParameterProperties": "error",
+				"noRestrictedGlobals": "error",
+				"noRestrictedImports": "error",
+				"noRestrictedTypes": {
+					"level": "error",
+					"options": {
+						"types": {
+							"Omit": {
+								"message": "Use Except from type-fest instead.",
+								"use": "Except"
+							}
+						}
+					}
+				},
+				"noTopLevelLiterals": "error",
+				"useArrayLiterals": "off",
+				"useComponentExportOnlyModules": "off",
+				"useConsistentEnumValueType": "error",
+				"useConsistentTestIt": "error",
+				"useConst": {
+					"fix": "safe",
+					"level": "error"
+				},
+				"useDefaultParameterLast": "error",
+				"useDomQuerySelector": "error",
+				"useErrorCause": "error",
+				"useNamedCaptureGroup": "error",
+				"useReduceTypeParameter": "error",
+				"useSpreadOverApply": "error",
+				"useTestHooksInOrder": "error",
+				"useTestHooksOnTop": "error",
+				"useThisInClassMethods": "error",
+				"useUnicodeRegex": "error",
+				"useVarsOnTop": "error"
+			},
+
+			"suspicious": {
+				"noApproximativeNumericConstant": "error",
+				"noArrayIndexKey": "error",
+				"noConditionalExpect": "off",
+				"noConfusingVoidType": "off",
+				"noConstEnum": "off",
+				"noControlCharactersInRegex": "off",
+				"noDrizzleDeleteWithoutWhere": "error",
+				"noDrizzleUpdateWithoutWhere": "error",
+				"noDuplicateEnumValues": "error",
+				"noDuplicateSelectors": "error",
+				"noEmptyBlockStatements": "error",
+				"noEmptyObjectKeys": "error",
+				"noEqualsToNull": "error",
+				"noForIn": "error",
+				"noIdenticalTestTitle": "error",
+				"noJsxLeakedDollar": "error",
+				"noLoopFunc": "error",
+				"noNestedPromises": "error",
+				"noParametersOnlyUsedInRecursion": "error",
+				"noProto": "error",
+				"noReactStringRefs": "error",
+				"noReturnAssign": "error",
+				"noTemplateCurlyInString": "off",
+				// Vite inlines these. They are not process environment variables.
+				"noUndeclaredEnvVars": {
+					"level": "error",
+					"options": {
+						"allowedEnvVars": ["BASE_URL", "DEV", "MODE", "PROD", "SSR"]
+					}
+				},
+				"noUnnecessaryConditions": "off",
+				"noUntrustedLicenses": "error",
+				"useArraySortCompare": "error",
+				// Allowed features are enhancements that browsers without them
+				// ignore. `user-select` sits beside `-webkit-user-select` for Safari.
+				"useBaseline": {
+					"level": "error",
+					"options": {
+						"allowAtRules": ["view-transition"],
+						"allowProperties": ["user-select"],
+						"allowPropertyValues": { "text-wrap": ["pretty"] },
+						"allowSelectors": ["selection", "marker"],
+						"available": "newly"
+					}
+				},
+				"useExpect": "error",
+				"useScopedStyles": "error"
+			}
+		}
+	},
+
+	"markdown": {
+		"analyzeEmbeds": false,
+		"formatter": { "enabled": false }
+	},
+
+	"overrides": [
+		// Languages and formatting.
+		{
+			"formatter": { "enabled": false },
+			"includes": ["**/*.{ts,tsx}"]
+		},
+		{
+			// oxfmt formats biome.jsonc without trailing commas, so Biome must too
+			// (tools/linter-utilities/src/configuration-utilities.ts).
+			"includes": ["**/*.jsonc", "!**/biome.jsonc"],
+			"json": {
+				"formatter": { "trailingCommas": "all" },
+				"parser": { "allowTrailingCommas": true }
+			}
+		},
+		{
+			"assist": {
+				"actions": {
+					"source": {
+						"useSortedKeys": {
+							"level": "on",
+							"options": { "sortOrder": "lexicographic" }
+						}
+					}
+				}
+			},
+			"includes": ["**/*.{json,jsonc}", "!**/tsconfig*.json"]
+		},
+
+		// Framework domains.
+		{
+			"includes": ["apps/**"],
+			"linter": {
+				"domains": {
+					"astro": "all",
+					"react": "all",
+					"tailwind": "all",
+					"tanstackQuery": "all"
+				}
+			}
+		},
+		{
+			"includes": ["apps/*/tests/**/*.e2e.ts"],
+			"linter": {
+				"domains": { "playwright": "all" }
+			}
+		},
+
+		// Astro bundles `<script src>` tags as deferred modules, so they are not
+		// render-blocking. Scoped `<style>` blocks group rules per component, so
+		// descending specificity across unrelated components is not a cascade bug.
+		{
+			"includes": ["**/*.astro"],
+			"linter": {
+				"rules": {
+					"performance": { "noSyncScripts": "off" },
+					"style": { "noDescendingSpecificity": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["apps/*/src/**/*.astro"],
+			"linter": {
+				"domains": { "react": "none" },
+				"rules": {
+					"nursery": {
+						// The structured data is JSON from our own content, never user HTML.
+						"noAstroSetHtmlDirective": "off"
+					}
+				}
+			}
+		},
+
+		{
+			"includes": ["apps/*/src/**/*.stories.{ts,tsx}"],
+			"linter": {
+				"rules": {
+					"correctness": { "useUniqueElementIds": "off" }
+				}
+			}
+		},
+
+		// Scripts and tests.
+		{
+			"includes": ["scripts/**/*.{ts,tsx}", "apps/*/tests/**/*.{ts,tsx}"],
+			"linter": {
+				"rules": {
+					"complexity": { "noExcessiveCognitiveComplexity": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["**/tests/**"],
+			"linter": {
+				"rules": {
+					"performance": { "useTopLevelRegex": "off" }
+				}
+			}
+		},
+		{
+			"includes": ["scripts/**/*.{ts,tsx}", ".claude/hooks/**/*.ts"],
+			"javascript": { "globals": ["Bun"] },
+			"linter": {
+				"rules": {
+					"nursery": { "noBunModules": "off" }
+				}
+			}
+		}
+	],
+
+	"vcs": {
+		"clientKind": "git",
+		"defaultBranch": "main",
+		"enabled": true,
+		"useIgnoreFile": true
+	},
+
+	"yaml": {
+		"formatter": {
+			"bracketSpacing": false,
+			"indentWidth": 2
+		},
+		"linter": { "enabled": true }
+	}
+}

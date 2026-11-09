@@ -1,0 +1,15 @@
+{
+	"$schema": "https://raw.githubusercontent.com/sql-formatter-org/sql-formatter/refs/heads/master/schema.json",
+	"dataTypeCase": "upper",
+	"denseOperators": false,
+	"expressionWidth": 120,
+	"functionCase": "upper",
+	"identifierCase": "lower",
+	"keywordCase": "upper",
+	"language": "sqlite",
+	"linesBetweenQueries": 1,
+	"logicalOperatorNewline": "after",
+	"newlineBeforeSemicolon": false,
+	"tabWidth": 4,
+	"useTabs": true
+}

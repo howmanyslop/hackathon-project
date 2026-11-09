@@ -1,0 +1,34 @@
+{
+	"name": "@web-template/lint-configurations",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Linter configurations",
+	"license": "UNLICENSED",
+	"type": "module",
+	"exports": {
+		"./get-eslint-async": "./src/get-eslint-async.ts",
+		"./get-oxlint-async": "./src/get-oxlint-async.ts",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"test": "vp test run",
+		"test:agent": "vp test --reporter agent",
+		"test:watch": "vp test",
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"dependencies": {
+		"@gdp-ts/core": "catalog:prod",
+		"@isentinel/eslint-config": "catalog:lint",
+		"@web-template/linter-utilities": "workspace:*",
+		"oxlint-plugin-react-doctor": "catalog:lint"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:types",
+		"@web-template/vite-plus-configuration": "workspace:*",
+		"eslint-plugin-sonarjs": "catalog:lint",
+		"oxlint": "catalog:lint",
+		"vite": "catalog:tooling",
+		"vite-plus": "catalog:tooling"
+	}
+}

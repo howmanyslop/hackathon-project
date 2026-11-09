@@ -1,0 +1,15 @@
+import { Plugin } from "@opencode/plugin/effect";
+import { Effect } from "effect";
+
+import type { Scope } from "effect";
+
+const {{camelCase name}} = Plugin.define({
+	id: "{{name}}",
+	effect(context): Effect.Effect<void, never, Scope.Scope> {
+		return Effect.gen(function* run{{pascalCase name}}() {
+			yield* context.tool.hook("execute.before", (event) => Effect.logDebug(`[{{name}}] ${event.tool}`));
+		});
+	},
+});
+
+export default {{camelCase name}};

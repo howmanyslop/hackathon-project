@@ -1,0 +1,17 @@
+{
+	"references": [
+		{ "path": "./tsconfig.node.json" },
+		{ "path": "./.opencode" },
+		{ "path": "./packages/arktype-utilities" },
+		{ "path": "./packages/codex-utilities" },
+		{ "path": "./packages/english-utilities" },
+		{ "path": "./packages/file-utilities" },
+		{ "path": "./packages/fs-utilities" },
+		{ "path": "./scripts" },
+		{ "path": "./apps/web" },
+		{ "path": "./tools/lint-configurations" },
+		{ "path": "./tools/linter-utilities" },
+		{ "path": "./tools/vite-plus-configuration" }
+	],
+	"files": []
+}

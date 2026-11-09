@@ -1,0 +1,22 @@
+{
+	"name": "@web-template/turbo",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"dependencies": {
+		"@turbo/gen": "catalog:tooling",
+		"@web-template/arktype-utilities": "workspace:*",
+		"@web-template/fs-utilities": "workspace:*",
+		"arktype": "catalog:prod",
+		"confbox": "catalog:prod",
+		"effect": "catalog:prod",
+		"tinyexec": "catalog:scripts"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:types"
+	}
+}

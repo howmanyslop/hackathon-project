@@ -1,0 +1,7 @@
+{
+	"compilerOptions": {
+		"types": ["bun", "node"]
+	},
+	"extends": "../tsconfig.node.json",
+	"include": ["hooks/**/*.ts"]
+}

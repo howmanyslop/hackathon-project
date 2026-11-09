@@ -1,0 +1,22 @@
+{
+	"addOnOptions": {
+		"drizzle": {
+			"database": "sqlite"
+		}
+	},
+	"bundler": "vite",
+	"chosenAddOns": ["clerk", "drizzle", "oRPC", "tanstack-query", "shadcn", "storybook", "compiler", "cloudflare"],
+	"framework": "react",
+	"git": false,
+	"includeExamples": false,
+	"install": false,
+	"intent": false,
+	"mode": "file-router",
+	"packageManager": "pnpm",
+	"projectName": "web",
+	"projectPreset": "default",
+	"routerOnly": false,
+	"tailwind": true,
+	"typescript": true,
+	"version": 1
+}

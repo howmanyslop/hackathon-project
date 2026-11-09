@@ -1,0 +1,40 @@
+{
+	"mcpServers": {
+		"chrome-devtools": {
+			"args": ["scripts/get-chrome-path.sh", "--serve"],
+			"command": "bash"
+		},
+		"cloudflare-api": {
+			"type": "http",
+			"url": "https://mcp.cloudflare.com/mcp"
+		},
+		"fallow": {
+			"args": ["x", "--", "node", "--run", "fallow-mcp"],
+			"command": "mise"
+		},
+		"gh-grep": {
+			"type": "http",
+			"url": "https://mcp.grep.app"
+		},
+		"hk": {
+			"args": ["x", "--", "hk", "mcp", "--root", "."],
+			"command": "mise"
+		},
+		"npm-registry": {
+			"args": ["x", "--", "npm-registry-mcp"],
+			"command": "mise"
+		},
+		"openrouter-mcp": {
+			"type": "http",
+			"url": "https://mcp.openrouter.ai/mcp"
+		},
+		"playwright": {
+			"args": ["x", "--", "nlx", "@playwright/mcp@latest"],
+			"command": "mise"
+		},
+		"shadcn": {
+			"args": ["x", "--", "node", "--run", "shadcn", "--", "mcp"],
+			"command": "mise"
+		}
+	}
+}

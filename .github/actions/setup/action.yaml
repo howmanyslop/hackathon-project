@@ -1,0 +1,35 @@
+name: Setup
+description: Install the mise tools, cached, and the pnpm workspace.
+
+inputs:
+  tools:
+    description: Space-separated mise tools to install. Empty installs every tool in mise.toml.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    # pipx:sqlfluff is installed from a uv dependency lock, so uv has to be on
+    # PATH before the other tools install.
+    - if: inputs.tools == ''
+      name: Install uv
+      uses: jdx/mise-action@7a4e45a543138629540c9a1616d08632b893e492 # v5.0.1
+      with:
+        cache: false
+        install_args: uv
+
+    # The cache key includes the install arguments, so a job that installs a
+    # few tools never replaces the cache of one that installs them all.
+    - name: Install mise tools
+      uses: jdx/mise-action@7a4e45a543138629540c9a1616d08632b893e492 # v5.0.1
+      with:
+        install_args: ${{ inputs.tools }}
+
+    # Restoring the pnpm store costs ~54s: a 747 MB archive with tens of
+    # thousands of small files. install takes ~6s afterwards, so the cache is
+    # a net loss. Keep mise cached (333 MB of large binaries restores in
+    # seconds) and install dependencies from the registry.
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      shell: bash

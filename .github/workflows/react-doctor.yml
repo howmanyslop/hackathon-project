@@ -1,0 +1,68 @@
+# React Doctor reports security, performance, correctness, accessibility, and
+# architecture issues in the React apps. On a pull request it comments with
+# only the issues the PR introduced; on main it tracks the health score.
+#
+# Docs: https://www.react.doctor/ci
+
+name: React Doctor
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - "**/*.md"
+      - docs/**
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - docs/**
+  workflow_dispatch:
+
+permissions: {}
+
+# Reviewers only ever see the scan of the latest commit.
+concurrency:
+  group: react-doctor-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  react-doctor:
+    name: React Doctor
+    permissions:
+      contents: read
+      # The sticky summary comment goes through the issues API, the inline
+      # review comments through the pulls API.
+      issues: write
+      pull-requests: write
+      statuses: write
+    runs-on: ubuntu-latest
+    steps:
+      # The full history lets React Doctor find the merge base, so a PR is
+      # compared against its base instead of reporting pre-existing issues.
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # pnpm install applies patches/react-doctor@0.9.18.patch through
+      # patchedDependencies. Without the patch, the oxlint worker drops lintFile
+      # arguments and the scan breaks.
+      - name: Set up
+        uses: ./.github/actions/setup
+        with:
+          tools: node pnpm
+
+      # With version left at "latest", the action finds the workspace's own
+      # react-doctor and runs it with pnpm exec, so the scan uses the patched
+      # copy and the root doctor.config.ts. Setting version would make it
+      # download an unpatched react-doctor instead.
+      - name: Scan
+        uses: millionco/react-doctor@695e46eee203a5d1855020191aa7e9c010a1250e # v2.4.0
+        with:
+          node-version: "26"
+          # The same projects the react-doctor hk profile scans. The action's
+          # default "*" would also walk the non-React workspace packages.
+          project: apps/*
+    timeout-minutes: 15

@@ -1,0 +1,9 @@
+# String literals are where page copy lives. A fragment that is only a dash
+# is a glyph (an empty cell, or the separator in a numeric range), not prose.
+engine: tree-sitter
+
+scopes:
+  - name: text
+    expr: |
+      ((string_fragment) @text
+        (#not-match? @text "^\\s*[–—]\\s*$"))

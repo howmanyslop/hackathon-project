@@ -1,0 +1,15 @@
+{
+	"name": "@opencode-plugins/run-hk-check-on-idle",
+	"private": true,
+	"type": "module",
+	"dependencies": {
+		"effect": "catalog:opencode2",
+		"tinyexec": "catalog:scripts"
+	},
+	"devDependencies": {
+		"@opencode/plugin": "catalog:opencode2"
+	},
+	"peerDependencies": {
+		"@opencode/plugin": "catalog:opencode2"
+	}
+}

@@ -1,0 +1,17 @@
+import { testConfiguration } from "@web-template/vite-plus-configuration/vitest";
+import { defineConfig } from "vite-plus";
+import { mergeConfig as mergeTestConfig } from "vite-plus/test/config";
+
+// Astro builds and serves the site from `astro.config.ts`; this file only
+// configures `vp test`.
+
+const configuration = defineConfig(
+	mergeTestConfig(testConfiguration, {
+		test: {
+			name: "{{name}}",
+			include: ["src/**/*.test.ts"],
+		},
+	}),
+);
+
+export default configuration;

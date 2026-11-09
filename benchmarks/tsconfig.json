@@ -1,0 +1,9 @@
+{
+	"extends": "../tsconfig.node.json",
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/benchmarks.tsbuildinfo",
+		"types": ["bun", "node"],
+		"erasableSyntaxOnly": false
+	},
+	"include": ["**/*"]
+}

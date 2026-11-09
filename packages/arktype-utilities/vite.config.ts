@@ -1,0 +1,21 @@
+import { packConfiguration } from "@web-template/vite-plus-configuration/tsdown";
+import { testConfiguration } from "@web-template/vite-plus-configuration/vitest";
+import { defineConfig } from "vite-plus";
+import { mergeConfig as mergePackConfig } from "vite-plus/pack";
+import { defineConfig as defineTestConfig, mergeConfig as mergeTestConfig } from "vite-plus/test/config";
+
+const configuration = defineConfig({
+	...mergeTestConfig(
+		testConfiguration,
+		defineTestConfig({
+			test: {
+				name: "arktype-utilities",
+				include: ["src/**/*.test.ts"],
+				testTimeout: 5_000,
+			},
+		}),
+	),
+	pack: mergePackConfig(packConfiguration, { entry: "./src/index.ts" }),
+});
+
+export default configuration;

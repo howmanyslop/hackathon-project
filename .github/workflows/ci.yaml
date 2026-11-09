@@ -1,0 +1,261 @@
+name: CI
+
+on:
+  pull_request:
+    types: [labeled, opened, reopened, synchronize]
+    paths-ignore:
+      - "**/*.md"
+      - docs/**
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**/*.md"
+      - docs/**
+  workflow_dispatch:
+
+permissions: {}
+
+# A new push to a PR replaces its running check. Runs on main queue instead,
+# so a deploy is never cut off halfway.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # The Chromium tests cost the most minutes, so pull requests only run them
+  # when labeled full-ci. Everything that can deploy runs them.
+  browser:
+    name: Browser tests
+    permissions:
+      contents: read
+    if: (github.event.action != 'labeled' || github.event.label.name == 'full-ci') && (github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'full-ci'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+        with:
+          tools: node pnpm bun
+
+      - name: Set up Playwright
+        uses: ./.github/actions/setup-playwright
+
+      - name: Cache turbo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: turbo-browser-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          path: .turbo/cache
+          restore-keys: turbo-browser-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      - name: Browser tests
+        run: pnpm exec turbo run test:browser --summarize
+
+      - if: always()
+        name: Upload the turbo summary
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: turbo-summary-browser-${{ github.run_attempt }}
+          path: .turbo/runs
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 5
+    timeout-minutes: 30
+
+  # Off until the repository has a remote and its Cloudflare settings: set the
+  # DEPLOY_ENABLED repository variable to true, plus the CLOUDFLARE_ACCOUNT_ID
+  # variable and the CLOUDFLARE_API_TOKEN secret.
+  deploy-web:
+    concurrency:
+      cancel-in-progress: false
+      group: deploy-production
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    environment:
+      name: production
+    if: vars.DEPLOY_ENABLED == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: Deploy web
+    needs: [lint, validate, test, browser]
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+
+      - name: Download the build
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: web
+          path: apps/web/.cloudflare/output
+
+      # Migrations go first, so a failed migration stops the deploy.
+      - name: Apply D1 migrations
+        run: pnpm --dir apps/web run db:migrate:remote
+
+      - name: Deploy the Worker
+        run: pnpm --dir apps/web exec cf deploy --prebuilt
+    timeout-minutes: 15
+
+  # Lint gets its own runner, and runs oxlint and ESLint one after the other:
+  # both type-aware engines over every file at once can still run a runner
+  # out of memory on a cold cache.
+  lint:
+    name: Lint
+    permissions:
+      contents: read
+    if: github.event.action != 'labeled' || github.event.label.name == 'full-ci'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+
+      # ESLint and isentinel-lint key each file's cached result on its contents
+      # and the lint configuration, so a cache from before a dependency bump is
+      # still safe to start from.
+      - name: Cache lint results
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: lint-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          path: |
+            .eslintcache-*
+            node_modules/.cache/isentinel-lint
+          restore-keys: |
+            lint-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            lint-${{ runner.os }}-
+
+      - name: oxlint
+        run: node --run isentinel-lint -- --oxlint .
+
+      - name: ESLint
+        run: node --run isentinel-lint -- --eslint .
+    timeout-minutes: 20
+
+  test:
+    name: Test
+    permissions:
+      contents: read
+    if: github.event.action != 'labeled' || github.event.label.name == 'full-ci'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+        with:
+          tools: node pnpm bun
+
+      - name: Cache turbo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: turbo-test-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          path: .turbo/cache
+          restore-keys: turbo-test-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      # Tests depend on transit and builds on ^build, so the two runs never
+      # share a task.
+      - parallel:
+          - name: Unit tests
+            run: pnpm exec turbo run test --summarize
+
+          - name: Builds
+            run: pnpm exec turbo run build --summarize
+
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        name: Upload the build
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: web
+          path: apps/web/.cloudflare/output
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+
+      - if: always()
+        name: Upload the turbo summary
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: turbo-summary-test-${{ github.run_attempt }}
+          path: .turbo/runs
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 5
+    timeout-minutes: 20
+
+  # The rest of the pre-push hook's checks, side by side. Every file is
+  # checked, so a rule, config, or dependency change cannot hide new errors in
+  # files the change did not touch.
+  validate:
+    name: Validate
+    permissions:
+      contents: read
+    if: github.event.action != 'labeled' || github.event.label.name == 'full-ci'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up
+        uses: ./.github/actions/setup
+
+      # Turbo's local cache never evicts anything, so it starts fresh whenever
+      # the lockfile changes.
+      - name: Cache turbo
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          key: turbo-validate-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          path: .turbo/cache
+          restore-keys: turbo-validate-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      - parallel:
+          # The pre-push hook scans the pushed range from git's stdin, which
+          # CI does not have, so scan the same range here.
+          - env:
+              BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+              HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+            if: github.event_name != 'workflow_dispatch'
+            name: Scan new commits for secrets
+            run: betterleaks git --redact --no-banner --log-opts="${BASE_SHA}..${HEAD_SHA}"
+
+          - name: Type check
+            run: pnpm exec turbo run type-check type-check:root --summarize
+
+          - name: Biome
+            run: hk check --all --step biome
+
+          - name: File checks
+            run: hk check --all --skip-step type-check --skip-step isentinel-lint --skip-step biome --skip-step betterleaks
+
+          - name: Dead code
+            run: fallow dead-code
+
+      - if: always()
+        name: Upload the turbo summary
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: turbo-summary-validate-${{ github.run_attempt }}
+          path: .turbo/runs
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 5
+    timeout-minutes: 20

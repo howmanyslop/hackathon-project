@@ -1,0 +1,28 @@
+{
+	"name": "@web-template/vite-plus-configuration",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Shared vite-plus configuration, setup, and matcher types.",
+	"license": "UNLICENSED",
+	"type": "module",
+	"exports": {
+		"./package.json": "./package.json",
+		"./tsdown": "./src/tsdown-shared.ts",
+		"./vitest": "./src/vitest-shared.ts"
+	},
+	"main": "./src/shared.ts",
+	"types": "./src/shared.ts",
+	"scripts": {
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"dependencies": {
+		"jest-extended": "catalog:test",
+		"vite-plus": "catalog:tooling"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:types",
+		"tsrs": "catalog:tooling",
+		"vite": "catalog:tooling"
+	}
+}

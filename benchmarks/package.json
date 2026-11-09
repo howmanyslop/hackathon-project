@@ -1,0 +1,23 @@
+{
+	"name": "@web-template/benchmarks",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"dependencies": {
+		"@cfworker/json-schema": "catalog:benchmark",
+		"@earendil-works/pi-schema": "catalog:benchmark",
+		"@faker-js/faker": "catalog:benchmark",
+		"arktype": "catalog:prod",
+		"mitata": "catalog:benchmark",
+		"typebox": "catalog:benchmark"
+	},
+	"devDependencies": {
+		"@mitata/counters": "catalog:benchmark",
+		"@total-typescript/ts-reset": "catalog:types",
+		"@types/bun": "catalog:types",
+		"@types/node": "catalog:types"
+	}
+}

@@ -1,0 +1,9 @@
+{
+	"name": "claude",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"devDependencies": {
+		"@types/bun": "catalog:types"
+	}
+}

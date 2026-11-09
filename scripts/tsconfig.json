@@ -1,0 +1,15 @@
+{
+	"extends": "../tsconfig.node.json",
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/scripts.tsbuildinfo",
+		"paths": {
+			"$script-errors/*": ["./errors/*"],
+			"$script-functions/*": ["./functions/*"],
+			"$script-logging/*": ["./logging/*"],
+			"$script-utilities/*": ["./utilities/*"]
+		},
+		"types": ["bun", "node"],
+		"erasableSyntaxOnly": false
+	},
+	"include": ["**/*"]
+}

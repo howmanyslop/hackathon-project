@@ -1,0 +1,17 @@
+import react from "@astrojs/react";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "astro/config";
+
+const configuration = defineConfig({
+	build: { inlineStylesheets: "never" },
+	integrations: [
+		react({ compiler: true, exclude: [/node_modules/u] }),
+	],
+	prefetch: true,
+	site: "https://{{hostname}}",
+	vite: {
+		plugins: [tailwindcss()],
+	},
+});
+
+export default configuration;

@@ -1,0 +1,39 @@
+{
+	"name": "@web-template/{{name}}",
+	"version": "0.0.0",
+	"private": true,
+	"description": {{{json description}}},
+	"homepage": "https://{{hostname}}",
+	"type": "module",
+	"scripts": {
+		"astro:check": "astro check",
+		"build": "astro build",
+		"deploy": "turbo run build type-check && wrangler deploy",
+		"dev": "astro dev",
+		"postinstall": "astro sync",
+		"preview": "astro preview",
+		"test": "vp test run",
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"dependencies": {
+		"@astrojs/react": "catalog:frontend",
+		"@tailwindcss/vite": "catalog:vite",
+		"astro": "catalog:frontend",
+		"react": "catalog:frontend",
+		"react-dom": "catalog:frontend",
+		"tailwindcss": "catalog:frontend"
+	},
+	"devDependencies": {
+		"@astrojs/check": "catalog:tooling",
+		"@web-template/vite-plus-configuration": "workspace:*",
+		"@types/node": "catalog:types",
+		"@types/react": "catalog:types",
+		"@types/react-dom": "catalog:types",
+		"oxc-transform-react": "catalog:build",
+		"typescript": "catalog:tooling",
+		"vite": "catalog:tooling",
+		"vite-plus": "catalog:tooling",
+		"wrangler": "catalog:tooling"
+	}
+}

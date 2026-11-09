@@ -1,0 +1,11 @@
+# pnpm
+/arktype
+/devtools-vite-plugin
+/fallow
+/fallow-setup
+/migrate-from-nextjs
+/migrate-from-react-router
+/react-router
+/react-start
+/router-query
+# pnpm end

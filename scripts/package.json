@@ -1,0 +1,21 @@
+{
+	"name": "@web-template/scripts",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"dependencies": {
+		"@cliffy/command": "catalog:scripts",
+		"arktype": "catalog:prod",
+		"consola": "catalog:scripts",
+		"tslog": "catalog:scripts"
+	},
+	"devDependencies": {
+		"@total-typescript/ts-reset": "catalog:types",
+		"@types/bun": "catalog:types",
+		"@types/node": "catalog:types"
+	}
+}

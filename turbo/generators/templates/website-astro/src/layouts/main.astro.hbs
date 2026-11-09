@@ -1,0 +1,25 @@
+---
+import "$styles/global.css";
+
+interface Props {
+	readonly description: string;
+	readonly title: string;
+}
+
+const { description, title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta content="width=device-width, initial-scale=1" name="viewport" />
+		<meta content={description} name="description" />
+		<title>{title}</title>
+	</head>
+	<body class="font-sans antialiased">
+		<main class="page-wrap">
+			<slot />
+		</main>
+	</body>
+</html>

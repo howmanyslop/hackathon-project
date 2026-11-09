@@ -1,0 +1,34 @@
+{
+	"name": "@web-template/english-utilities",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Utilities relating to the English language.",
+	"license": "UNLICENSED",
+	"sideEffects": false,
+	"type": "module",
+	"exports": {
+		"./format-array-as-english-list": "./src/format-array-as-english-list.ts",
+		"./get-indefinite-article": "./src/get-indefinite-article.ts",
+		"./package.json": "./package.json",
+		"./to-plural": "./src/to-plural.ts"
+	},
+	"scripts": {
+		"attw": "attw",
+		"build": "vp pack",
+		"check": "vp check",
+		"dev": "vp pack --watch",
+		"publint": "publint",
+		"test": "vp test run",
+		"test:agent": "vp test --reporter agent",
+		"test:watch": "vp test",
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"devDependencies": {
+		"@arethetypeswrong/core": "catalog:build",
+		"@web-template/vite-plus-configuration": "workspace:*",
+		"publint": "catalog:build",
+		"typescript": "catalog:tooling",
+		"vite-plus": "catalog:tooling"
+	}
+}

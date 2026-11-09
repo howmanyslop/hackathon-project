@@ -1,0 +1,13 @@
+diff --git a/dist/oxlint-worker.js b/dist/oxlint-worker.js
+index 6cd5f718beca0edd5e0995713931ea3606ca7970..6f0f7904056827f3e3acce7b0c4edaeb145178de 100644
+--- a/dist/oxlint-worker.js
++++ b/dist/oxlint-worker.js
+@@ -113,7 +113,7 @@ const runJob = async (internals, job) => {
+ 		process.chdir(job.cwd);
+ 		if (filesystemCacheEpochGate.shouldReset(job.filesystemCacheEpoch)) resetPluginFilesystemCaches();
+ 		internals.createWorkspace(workspaceUri);
+-		status = await internals.lint(job.argumentsList, (...forwarded) => internals.loadPlugin(...[...forwarded.slice(0, 3), workspaceUri]), (...forwarded) => internals.setupRuleConfigs(...forwarded), (...forwarded) => internals.lintFile(...[...forwarded.slice(0, 7), workspaceUri]), (...forwarded) => Promise.resolve(internals.createWorkspace(...forwarded)), (...forwarded) => internals.destroyWorkspace(...forwarded), (...forwarded) => internals.loadJsConfigs(...forwarded)) === false ? "findings" : "ok";
++		status = await internals.lint(job.argumentsList, (...forwarded) => internals.loadPlugin(...[...forwarded.slice(0, 3), workspaceUri]), (...forwarded) => internals.setupRuleConfigs(...forwarded), (...forwarded) => internals.lintFile(...[...forwarded.slice(0, -1), workspaceUri]), (...forwarded) => Promise.resolve(internals.createWorkspace(...forwarded)), (...forwarded) => internals.destroyWorkspace(...forwarded), (...forwarded) => internals.loadJsConfigs(...forwarded)) === false ? "findings" : "ok";
+ 	} catch (error) {
+ 		errorMessage = error instanceof Error ? error.stack ?? error.message : String(error);
+ 	} finally {

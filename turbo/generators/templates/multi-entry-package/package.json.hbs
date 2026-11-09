@@ -1,0 +1,34 @@
+{
+	"name": "@web-template/{{name}}",
+	"version": "0.0.0",
+	"private": true,
+	"description": {{{json description}}},
+	"license": "UNLICENSED",
+	"sideEffects": false,
+	"type": "module",
+	"exports": {
+{{#each entryList}}
+		"./{{this}}": "./src/{{this}}.ts",
+{{/each}}
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"attw": "attw",
+		"build": "vp pack",
+		"check": "vp check",
+		"dev": "vp pack --watch",
+		"publint": "publint",
+		"test": "vp test run",
+		"test:agent": "vp test --reporter agent",
+		"test:watch": "vp test",
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"devDependencies": {
+		"@arethetypeswrong/core": "catalog:build",
+		"@web-template/vite-plus-configuration": "workspace:*",
+		"publint": "catalog:build",
+		"typescript": "catalog:tooling",
+		"vite-plus": "catalog:tooling"
+	}
+}

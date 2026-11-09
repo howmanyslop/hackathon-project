@@ -1,0 +1,29 @@
+{
+	"$schema": "https://turborepo.dev/schema.json",
+	"globalDependencies": ["mise.lock", "tsconfig*.json"],
+	"globalPassThroughEnv": ["NODE_OPTIONS", "PLAYWRIGHT_*"],
+	"tasks": {
+		"//#type-check:root": {},
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": ["dist/**"]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"test": {
+			"dependsOn": ["transit"]
+		},
+		"test:e2e": {
+			"cache": false,
+			"dependsOn": ["build"]
+		},
+		"transit": {
+			"dependsOn": ["^transit"]
+		},
+		"type-check": {
+			"dependsOn": ["transit"]
+		}
+	}
+}

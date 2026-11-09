@@ -1,0 +1,68 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"automergeStrategy": "merge-commit",
+	"automergeType": "pr",
+	"extends": ["config:recommended", "helpers:pinGitHubActionDigestsToSemver", ":semanticCommits"],
+	"internalChecksFilter": "strict",
+	"labels": ["dependencies", "full-ci"],
+	"lockFileMaintenance": {
+		"enabled": true,
+		"schedule": ["before 6am on monday"]
+	},
+	"minimumReleaseAge": "1 day",
+	"packageRules": [
+		{
+			"automerge": true,
+			"description": "One weekly PR for the low-risk updates, merged once CI passes.",
+			"groupName": "low-risk updates",
+			"groupSlug": "low-risk",
+			"matchUpdateTypes": ["patch", "pin", "digest"]
+		},
+		{
+			"automerge": true,
+			"description": "Dev tooling and Actions never ship, so their minor updates merge unattended too.",
+			"groupName": "low-risk updates",
+			"groupSlug": "low-risk",
+			"matchDepTypes": [
+				"action",
+				"devDependencies",
+				"pnpm.catalog.build",
+				"pnpm.catalog.commitlint",
+				"pnpm.catalog.lint",
+				"pnpm.catalog.scripts",
+				"pnpm.catalog.storybook",
+				"pnpm.catalog.test",
+				"pnpm.catalog.tooling",
+				"pnpm.catalog.types",
+				"pnpm.catalog.vite"
+			],
+			"matchUpdateTypes": ["minor"]
+		},
+		{
+			"automerge": true,
+			"description": "mise tools are developer tooling.",
+			"groupName": "low-risk updates",
+			"groupSlug": "low-risk",
+			"matchManagers": ["mise"],
+			"matchUpdateTypes": ["minor"]
+		},
+		{
+			"description": "Minor runtime updates wait for a human, in one PR.",
+			"groupName": "runtime minor updates",
+			"groupSlug": "runtime-minor",
+			"matchDepTypes": [
+				"dependencies",
+				"pnpm.catalog.database",
+				"pnpm.catalog.frontend",
+				"pnpm.catalog.orpc",
+				"pnpm.catalog.prod",
+				"pnpm.catalog.tanstack"
+			],
+			"matchUpdateTypes": ["minor"]
+		}
+	],
+	"platformAutomerge": false,
+	"prConcurrentLimit": 3,
+	"schedule": ["before 6am on monday"],
+	"timezone": "Etc/UTC"
+}

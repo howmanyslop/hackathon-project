@@ -1,0 +1,38 @@
+{
+	"name": "@web-template/file-utilities",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Filesystem, path, glob, and file-format serialization helpers.",
+	"license": "UNLICENSED",
+	"sideEffects": false,
+	"type": "module",
+	"exports": {
+		"./file-content": "./src/file-content-utilities.ts",
+		"./file-types/jsonc": "./src/file-types/jsonc-utilities.ts",
+		"./package.json": "./package.json"
+	},
+	"scripts": {
+		"attw": "attw",
+		"build": "vp pack",
+		"check": "vp check",
+		"dev": "vp pack --watch",
+		"publint": "publint",
+		"test": "vp test run",
+		"test:agent": "vp test --reporter agent",
+		"test:watch": "vp test",
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"dependencies": {
+		"arktype": "catalog:prod",
+		"jsonc-parser": "catalog:scripts",
+		"just-diff": "catalog:scripts"
+	},
+	"devDependencies": {
+		"@arethetypeswrong/core": "catalog:build",
+		"@web-template/vite-plus-configuration": "workspace:*",
+		"publint": "catalog:build",
+		"typescript": "catalog:tooling",
+		"vite-plus": "catalog:tooling"
+	}
+}

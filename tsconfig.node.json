@@ -1,0 +1,10 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"target": "esnext",
+		"lib": ["ES2025"],
+		"module": "preserve",
+		"types": ["node"]
+	},
+	"include": ["*.config.ts", ".config/*.ts", "turbo/generators/*.ts"]
+}

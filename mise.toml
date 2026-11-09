@@ -1,0 +1,125 @@
+[env]
+_.file = { path = ".env" }
+_.path = ["{{config_root}}/node_modules/.bin", "{{cwd}}/node_modules/.bin"]
+
+HK_MISE = 1
+HK_JOBS = 2
+
+[settings]
+experimental = true
+auto_install = false
+lockfile = true
+minimum_release_age_excludes = ["aube", "codex", "pnpm", "hk"]
+provenance_api_failures_fatal = false
+cargo.binstall_native = true
+
+[tools]
+"github:blopker/codebook" = "latest"
+# fish 4 ships a single binary on Linux; fish_indent is a builtin inside it.
+# macOS installs fish separately (Homebrew), since the release only has a .pkg.
+"github:fish-shell/fish-shell" = { version = "latest", os = ["linux"] }
+"pipx:sqlfluff" = "latest"
+betterleaks = "latest"
+bun = "latest"
+direnv = "latest"
+harper-cli = "2.9.1"
+hk = { version = "2.11.1", workflow = "release.yml" }
+jactionlint = "latest"
+ni = "latest"
+node = "26"
+pinact = "latest"
+pkl = "latest"
+pnpm = "12.18.0"
+python = "3.14.7"
+rumdl = "latest"
+shellcheck = "latest"
+shfmt = "latest"
+tombi = "latest"
+uv = "latest"
+vale = "latest"
+
+[tasks]
+[tasks."amend:verify"]
+description = "Amends the staged changes, reusing the previous commit message."
+run = "git commit --amend --reuse-message=HEAD --signoff"
+
+[tasks."commit:no-verify"]
+description = "Commits the staged changes without running Git hooks."
+usage = """
+arg <message> {
+	help "Git commit message"
+}
+"""
+run = """
+git commit --signoff --message "${usage_message?}" --no-verify
+"""
+
+[tasks.amend]
+description = "Amends the staged changes, reusing the previous commit message."
+run = "git commit --amend --reuse-message=HEAD --signoff --no-verify"
+
+[tasks.commit]
+description = "Commits the staged changes."
+usage = """
+arg <message> {
+	help "Git commit message"
+}
+"""
+run = """
+git commit --signoff --message "${usage_message?}"
+"""
+
+[tasks.init]
+description = "Turns a copy of this template into a new project (rename, fresh git, install)."
+usage = """
+arg <name> {
+	help "Project name, kebab-case"
+}
+flag "--agents" help="Keep the agent setup without asking"
+flag "--no-agents" help="Remove the agent setup without asking"
+"""
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+choice=""
+if [[ "${usage_agents:-}" == "true" ]]; then choice="--agents"; fi
+if [[ "${usage_no_agents:-}" == "true" ]]; then choice="--no-agents"; fi
+bash scripts/init-project.sh "${usage_name?}" ${choice}
+"""
+
+[tasks.lint-configuration]
+description = "View the lint configuration."
+usage = '''
+arg "<type>" {
+	help "What linting configuration do you want to run the inspector for?"
+	choices "eslint" "oxlint"
+}
+'''
+run = '''
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+case "${usage_type?}" in
+	eslint)
+		nlx @eslint/config-inspector
+		;;
+	oxlint)
+		nlx oxlint-config-inspector
+		;;
+esac
+'''
+
+[tasks.sync]
+description = "Pulls tooling changes from ~/GitHub/voice, showing the diff before applying it."
+usage = """
+arg "[personal]" {
+	help "Path to the personal-site repository"
+	default "~/GitHub/voice"
+}
+"""
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+bash scripts/sync-from-personal.sh "${usage_personal/#\\~/$HOME}"
+"""

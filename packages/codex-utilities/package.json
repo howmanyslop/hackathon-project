@@ -1,0 +1,23 @@
+{
+	"name": "@web-template/codex-utilities",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Utilities for OpenAI Codex",
+	"type": "module",
+	"exports": {
+		"./get-command": "./src/get-command.ts",
+		"./is-git-write-command": "./src/is-git-write-command.ts",
+		"./package.json": "./package.json",
+		"./read-stdin-async": "./src/read-stdin-async.ts",
+		"./types": "./src/codex-types.ts"
+	},
+	"scripts": {
+		"type-check": "tsrs --noEmit",
+		"type-check:agent": "node --run type-check -- --pretty false"
+	},
+	"dependencies": {
+		"@web-template/arktype-utilities": "workspace:*",
+		"arktype": "catalog:prod",
+		"effect": "catalog:prod"
+	}
+}
