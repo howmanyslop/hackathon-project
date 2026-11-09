@@ -9,7 +9,6 @@ export default defineConfig({
 		// TanStack Start's handler plus security headers (src/server.ts).
 		entrypoint: "./src/server.ts",
 		env: {
-			CLERK_SECRET_KEY: bindings.secret(),
 			DB: bindings.d1({
 				name: "web",
 			}),

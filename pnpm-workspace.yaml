@@ -172,7 +172,6 @@ catalogs:
     "@storybook/tanstack-react": 10.6.6
     storybook: 10.6.6
   tanstack:
-    "@clerk/tanstack-react-start": 1.7.11
     "@tanstack/devtools-vite": 0.8.6
     "@tanstack/react-devtools": 0.10.14
     "@tanstack/react-query": 5.106.1

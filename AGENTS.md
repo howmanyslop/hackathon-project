@@ -4,7 +4,7 @@ This file gives agents guidance for working with code in this repository.
 
 ## What This Is
 
-A web project monorepo. The app lives in `apps/web`: TanStack Start and React 19 on Cloudflare Workers, with D1 (SQLite) through Drizzle, Clerk auth, oRPC, and TanStack Query. Everything else (`packages/*`, `tools/*`, `.opencode`, `scripts`, `turbo/generators`) is shared utilities and developer tooling.
+A web project monorepo. The app lives in `apps/web`: TanStack Start and React 19 on Cloudflare Workers, with D1 (SQLite) through Drizzle, oRPC, and TanStack Query. Everything else (`packages/*`, `tools/*`, `.opencode`, `scripts`, `turbo/generators`) is shared utilities and developer tooling.
 
 ## Workspaces
 
@@ -20,7 +20,7 @@ CI (`.github/workflows/ci.yaml`) runs lint, type-check, file checks, dead code, 
 - Package manager is **pnpm** (pinned in `mise.toml`). Catalogs live in `pnpm-workspace.yaml`, and dependencies use `catalog:` specifiers. Node 26. Tools come from `mise`.
 - The test and build runner is **Vite+** (`vp`, Vitest underneath).
 - Type-checking uses `tsrs` (a native TypeScript 7 compiler), not the JavaScript `tsc` from TypeScript 6.
-- The root `.env` loads through mise and holds the Cloudflare values for D1 (`.env.example`). Clerk's keys go in `apps/web/.env` (`apps/web/.env.example`), which Vite and the Workers dev runtime read. Production secrets belong in `apps/web/cloudflare.config.ts` as `bindings.secret()`.
+- The root `.env` loads through mise and holds the Cloudflare values for D1 (`.env.example`). Production secrets belong in `apps/web/cloudflare.config.ts` as `bindings.secret()`.
 - Cloudflare config is `cloudflare.config.ts`, driven by the `cf` CLI (`cf deploy`, `cf workers types`, `cf d1 migrations apply`). Astro apps use `wrangler.jsonc`, because `cf` cannot build Astro 6 and later yet.
 
 ## Commands
@@ -77,7 +77,7 @@ Imports use the `#/*` subpath alias for `src/*`.
 - `server.ts` is the Worker entry: TanStack Start's handler plus security headers and a Content Security Policy. Add a `scheduled` handler here for cron triggers.
 - All server calls go through one oRPC router (`orpc/router/index.ts`), mounted at `routes/api.rpc.$.ts`. It accepts POST only and checks CSRF (`server/csrf.ts`). `orpc/client.ts` calls the router in-process during SSR and over `/api/rpc` in the browser.
 - `db/` holds the Drizzle schema and the D1 client (`env.DB`). Migrations go in `drizzle/`.
-- `integrations/` wires Clerk and TanStack Query into the router.
+- `integrations/` wires TanStack Query into the router.
 - UI uses Tailwind 4 and shadcn on Base UI. React Compiler handles memoization, so `useMemo`, `useCallback`, and `memo` are banned, and so is `useEffect` by default.
 
 ## Writing Conventions
