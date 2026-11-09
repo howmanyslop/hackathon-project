@@ -15,6 +15,7 @@
 		"dev": "vp dev --port 3000",
 		"generate-routes": "vp build",
 		"preview": "vp preview",
+		"speech-model:fetch": "node scripts/fetch-speech-model.ts",
 		"start": "node .output/server/index.mjs",
 		"storybook": "storybook dev -p 6006",
 		"test": "vp test run --config vitest.unit.config.ts",

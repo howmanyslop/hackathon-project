@@ -164,3 +164,6 @@ lerna-debug.log*
 .agents/skills/tailscale
 .agents/skills/choreograph
 .agents/skills/gestures
+
+# The on-device speech model (27 MB). `nr --filter @web-template/web speech-model:fetch` downloads it.
+apps/web/public/models/
