@@ -28,7 +28,9 @@ function getContentSecurityPolicy(): string {
 
 	return [
 		"default-src 'self'",
-		"script-src 'self' 'unsafe-inline'",
+		// 'wasm-unsafe-eval' lets the on-device speech model (onnxruntime-web)
+		// compile its WebAssembly; it does not allow eval of JavaScript.
+		"script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'",
 		"style-src 'self' 'unsafe-inline'",
 		"img-src 'self' data: blob:",
 		"font-src 'self' data:",
