@@ -1,10 +1,11 @@
 import { env } from "node:process";
 import { Client } from "@elastic/elasticsearch";
+import { isNonEmptyString, isUrlString } from "@web-template/arktype-utilities";
 import { type } from "arktype";
 
-const parseConfiguredSearchEnvironment = type({
-	ELASTICSEARCH_API_KEY: "string > 0",
-	ELASTICSEARCH_URL: "string.url",
+const isConfiguredSearchEnvironment = type({
+	ELASTICSEARCH_API_KEY: isNonEmptyString,
+	ELASTICSEARCH_URL: isUrlString,
 }).readonly();
 
 /**
@@ -26,7 +27,7 @@ function createSearchClient(): Client | undefined {
 
 	// Setting only one of the two is a mistake, so say so instead of quietly
 	// running without search.
-	const { ELASTICSEARCH_API_KEY, ELASTICSEARCH_URL } = parseConfiguredSearchEnvironment.assert({
+	const { ELASTICSEARCH_API_KEY, ELASTICSEARCH_URL } = isConfiguredSearchEnvironment.assert({
 		ELASTICSEARCH_API_KEY: apiKey,
 		ELASTICSEARCH_URL: url,
 	});

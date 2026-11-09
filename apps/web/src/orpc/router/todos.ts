@@ -1,4 +1,5 @@
 import { ORPCError, os } from "@orpc/server";
+import { isNonEmptyString, isUndefined } from "@web-template/arktype-utilities";
 import { type } from "arktype";
 import { asc } from "drizzle-orm";
 
@@ -25,7 +26,7 @@ export const listTodos = os.input(type({}).readonly()).handler(async function li
 export const addTodo = os
 	.input(
 		type({
-			name: "string > 0",
+			name: isNonEmptyString,
 		}).readonly(),
 	)
 	.handler(async function addTodoHandler({ input }): Promise<Todo> {
@@ -47,8 +48,8 @@ export const addTodo = os
 export const searchTodos = os
 	.input(
 		type({
-			"limit?": "1 <= number.integer <= 50",
-			query: "string > 0",
+			"limit?": isUndefined.or("1 <= number.integer <= 50"),
+			query: isNonEmptyString,
 		}).readonly(),
 	)
 	.handler(async function searchTodosHandler({ input }): Promise<ReadonlyArray<TodoSearchResult>> {
