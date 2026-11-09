@@ -451,7 +451,6 @@
 		},
 		{
 			"includes": ["scripts/**/*.{ts,tsx}", ".claude/hooks/**/*.ts"],
-			"javascript": { "globals": ["Bun"] },
 			"linter": {
 				"rules": {
 					"nursery": { "noBunModules": "error" }
