@@ -40,6 +40,8 @@
 		"@tanstack/react-router-devtools": "catalog:tanstack",
 		"@tanstack/react-router-ssr-query": "catalog:tanstack",
 		"@tanstack/react-start": "catalog:tanstack",
+		"@tmcp/adapter-arktype": "catalog:mcp",
+		"@tmcp/transport-http": "catalog:mcp",
 		"arktype": "catalog:prod",
 		"class-variance-authority": "catalog:frontend",
 		"cn": "catalog:frontend",
@@ -49,6 +51,7 @@
 		"react": "catalog:frontend",
 		"react-dom": "catalog:frontend",
 		"tailwindcss": "catalog:frontend",
+		"tmcp": "catalog:mcp",
 		"tw-animate-css": "catalog:frontend"
 	},
 	"devDependencies": {
