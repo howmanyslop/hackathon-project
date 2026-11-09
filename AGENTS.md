@@ -57,7 +57,7 @@ mise run k8s:status    # pods, services, ingress, volumes in the web namespace
 mise run k8s:logs      # follow the app's logs
 mise run k8s:db        # port-forward the cluster's Postgres to localhost:5432
 mise run k8s:down      # delete the web namespace, database included (asks first)
-mise run elastic:setup # create the Agent Builder agent and tools in elastic/ (idempotent)
+mise run elastic:setup # create or update the indices, Agent Builder tools and agent, and digest workflow in elastic/
 mise run seed -- <url> # push the sample talks in apps/web/seed/ through the recording procedures
 ```
 
@@ -92,18 +92,19 @@ Imports across `src` folders use one `$` alias per top-level folder (`$component
 - `server.ts` is the server entry: TanStack Start's handler plus security headers and a Content Security Policy. Nitro wraps it in a Node server. It runs database migrations once at startup (`db/migrate.ts`), and every request, `/healthz` included, waits for them.
 - `routes/healthz.ts` answers Kubernetes' readiness and liveness checks.
 - All server calls go through one oRPC router (`orpc/router/index.ts`), mounted at `routes/api.rpc.$.ts`. It accepts POST only and checks CSRF (`server/csrf.ts`). `orpc/client.ts` calls the router in-process during SSR and over `/api/rpc` in the browser.
-- `db/` holds the Drizzle schema and the Postgres client (`getDatabase()`, from `DATABASE_URL`). Migrations go in `drizzle/`.
-- `archive/` holds the domain: `contract.ts` (the shapes the procedures return), the pure Q&A split (`split.ts`), and `split-session.ts`, which replaces a session's pairs in one transaction under a per-session advisory lock (see `docs/adr/0003-pairs-are-rewritten.md`).
-- `search/` indexes segments and pairs into one Elastic index (`ELASTICSEARCH_ARCHIVE_INDEX`, default `asked-archive`) with a `semantic_text` field on the preconfigured `.jina-embeddings-v5-text-small` endpoint, and searches it with a `match` query. Postgres is the source of truth; a search failure never fails a write. Without `ELASTICSEARCH_URL` and `ELASTICSEARCH_API_KEY`, search reports that it isn't set up.
-- `llm/` asks an LLM for JSON: Elastic inference (`ELASTIC_LLM_INFERENCE_ID`) first, OpenRouter (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`) second.
-- `agent/` calls the Elastic Agent Builder agent (`ELASTIC_AGENT_ID`, through `KIBANA_URL`) for the Ask box, and reads the Workflow's digest note (`ELASTICSEARCH_DIGEST_INDEX`).
-- `mcp/` holds the read-only MCP tools served by `routes/mcp.ts`, the one route outside oRPC (see `docs/adr/0002-mcp-route-outside-orpc.md`).
+- `db/` holds the Drizzle schema (`sessions`, `segments`, `pairs`, `ask_log`) and the Postgres client (`getDatabase()`, from `DATABASE_URL`). Migrations go in `drizzle/`.
+- `archive/` holds the domain: `contract.ts` (the shapes the procedures return), the pure Q&A split (`split.ts`), and `split-session.ts`, which replaces a session's pairs in one transaction that first locks the session row. Live re-splits are claimed with an `UPDATE` that only one replica wins (see `docs/adr/0003-pairs-are-rewritten.md`).
+- `search/` indexes segments and pairs into one Elastic index (`ELASTICSEARCH_ARCHIVE_INDEX`, default `asked-archive`) with a `semantic_text` field on the preconfigured `.jina-embeddings-v5-text-small` endpoint, and searches it with a `match` query. It also reads the Workflow's digest note (`ELASTICSEARCH_DIGEST_INDEX`, default `asked-digest`). Postgres is the source of truth; a search failure never fails a write. Without `ELASTICSEARCH_URL` and `ELASTICSEARCH_API_KEY`, search reports that it isn't set up.
+- `llm/` asks an LLM for JSON: Elastic inference (`ELASTIC_LLM_INFERENCE_ID`) first, then OpenRouter through `@openrouter/sdk` (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`). Elastic's managed LLM answers 403 for this project today, so OpenRouter does the split.
+- `agent/` calls the Elastic Agent Builder agent (`ELASTIC_AGENT_ID`, through `KIBANA_URL`) for the Ask box. Every question is logged in `ask_log` before it is sent: the app refuses an eleventh question within a minute and stops once the logged cost reaches `ASK_BUDGET_USD` (default $20). `ask-budget.ts` holds the money math.
+- `mcp/` is a read-only MCP server built with `tmcp` and its ArkType adapter (no zod), one file per tool in `mcp/tools/`. `routes/mcp.ts` serves it, the one route outside oRPC (see `docs/adr/0002-mcp-route-outside-orpc.md`).
 - `features/` holds the UI for each route: archive, sessions, and the recorder. Speech-to-text runs in the browser; the server only receives text (see `docs/adr/0001-server-receives-text-only.md`).
 - Recording procedures need `PRESENTER_CODE`. Reading is public.
 
 ## Deployment (`k8s/`, `apps/web/Dockerfile`)
 
-- `k8s/` is plain manifests applied with Kustomize into the `web` namespace: the `cloudflared` tunnel that gives the app its public HTTPS address, Postgres (StatefulSet, `local-path` volume), the app (Deployment with three replicas spread across machines, a PodDisruptionBudget, Service, Traefik Ingress with no host rule). The `web-elastic` Secret is optional and comes from `.env` during `k8s:deploy`.
+- `k8s/` is plain manifests applied with Kustomize into the `web` namespace: Postgres (StatefulSet, `local-path` volume) and the app (Deployment with three replicas spread across machines, a PodDisruptionBudget, Service, Traefik Ingress with no host rule). The `web-elastic` and `web-llm` Secrets are optional and come from `.env` during `k8s:deploy`, which also makes the random `web-presenter` code once.
+- The `cloudflared` tunnel that gives the app its public HTTPS address sits outside the Kustomization. `k8s:deploy` applies `k8s/cloudflared.yaml` when `.env` has `CLOUDFLARE_TUNNEL_TOKEN` (stored in the `web-tunnel` Secret), and `k8s/cloudflared-quick.yaml`, a temporary `trycloudflare.com` address, otherwise.
 - `k8s/dash0/monitoring.yaml` sits outside the Kustomization because its kind exists only after `mise run dash0:install` adds the Dash0 operator (Helm, `dash0-system` namespace). The operator instruments the app with OpenTelemetry, so don't add an OpenTelemetry SDK to `apps/web`.
 - The `radar` namespace runs Radar's cluster agent and belongs to the hackathon's Radar setup. Don't change it.
 - `apps/web/Dockerfile` builds on the host's CPU and ships a `linux/amd64` runtime with only `.output/` and `drizzle/`. Its `app-files` stage is what `k8s:deploy` scans for secrets.

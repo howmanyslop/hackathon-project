@@ -27,25 +27,37 @@ node --run dev
 
 ## Settings
 
-Put these in `.env` for local work. `mise run k8s:deploy` copies them into Kubernetes Secrets.
+Put these in `.env` for local work. `mise run k8s:deploy` copies the Elastic, Kibana, OpenRouter, and tunnel values into Kubernetes Secrets, and makes a random presenter code for the cluster. The cluster uses the defaults for the rest.
 
-| Variable                       | Default                                       | What it's for                                              |
-| ------------------------------ | --------------------------------------------- | ---------------------------------------------------------- |
-| `PRESENTER_CODE`               | none                                          | The shared code for `/record`. Unset means no recording.   |
-| `ELASTICSEARCH_URL`            | none                                          | Elastic project endpoint.                                  |
-| `ELASTICSEARCH_API_KEY`        | none                                          | Elastic API key, also used for Kibana.                     |
-| `KIBANA_URL`                   | `ELASTICSEARCH_URL` with `.es.` as `.kb.`     | Agent Builder and Workflows.                               |
-| `ELASTICSEARCH_ARCHIVE_INDEX`  | `asked-archive`                               | Search index for segments and pairs.                       |
-| `ELASTICSEARCH_DIGEST_INDEX`   | `asked-digest`                                | Where the hourly note is written.                          |
-| `ELASTIC_LLM_INFERENCE_ID`     | `.anthropic-claude-5-sonnet-chat_completion`  | The LLM that splits the Q&A into pairs.                    |
-| `ELASTIC_AGENT_ID`             | `asked-and-answered`                          | The Agent Builder agent behind the Ask box.                |
-| `OPENROUTER_API_KEY`           | none (optional)                               | Fallback LLM when Elastic's fails.                         |
-| `OPENROUTER_MODEL`             | `anthropic/claude-haiku-5.5`                  | The fallback model.                                        |
+| Variable                       | Default                                       | What it's for                                                         |
+| ------------------------------ | --------------------------------------------- | --------------------------------------------------------------------- |
+| `PRESENTER_CODE`               | none                                          | The shared code for `/record`. Unset means no recording.              |
+| `ELASTICSEARCH_URL`            | none                                          | Elastic project endpoint.                                             |
+| `ELASTICSEARCH_API_KEY`        | none                                          | Elastic API key, also used for Kibana.                                |
+| `KIBANA_URL`                   | `ELASTICSEARCH_URL` with `.es.` as `.kb.`     | Agent Builder and Workflows.                                          |
+| `ELASTICSEARCH_ARCHIVE_INDEX`  | `asked-archive`                               | Search index for segments and pairs.                                  |
+| `ELASTICSEARCH_DIGEST_INDEX`   | `asked-digest`                                | Where the hourly note is written.                                     |
+| `ELASTIC_LLM_INFERENCE_ID`     | `.anthropic-claude-5-sonnet-chat_completion`  | Elastic's LLM, tried first for the split. It answers 403 here today.  |
+| `ELASTIC_AGENT_ID`             | `asked-and-answered`                          | The Agent Builder agent behind the Ask box.                           |
+| `ASK_BUDGET_USD`               | `20`                                          | The most the Ask box may spend on the agent. `0` turns it off.        |
+| `ASK_COST_ESTIMATE_USD`        | `0.10`                                        | Cost logged per question when the agent reports no token usage.      |
+| `OPENROUTER_API_KEY`           | none (optional)                               | The LLM that splits the Q&A when Elastic's fails, which it does now.  |
+| `OPENROUTER_MODEL`             | `anthropic/claude-haiku-5.5`                  | The OpenRouter model.                                                 |
+| `CLOUDFLARE_TUNNEL_TOKEN`      | none (optional)                               | The named tunnel. Without it, a temporary `trycloudflare.com` address. |
+
+### The Ask Box's Limits
+
+Each question in the Ask box goes to a paid Elastic agent. The app writes every question to the `ask_log` table before sending it, so all three replicas share one count:
+
+- More than 10 questions in a minute: "The archive is answering a lot of questions right now. Try again in a minute."
+- Once the logged cost reaches `ASK_BUDGET_USD`: "The Ask box has used its budget for now. Search still works."
+
+The cost of a question comes from the token usage the agent reports, priced at $6 per million input tokens and $30 per million output tokens, about twice the list price of its model. When it reports none, the question costs `ASK_COST_ESTIMATE_USD`.
 
 ## Sample Data and Elastic Setup
 
 ```sh
-mise run elastic:setup             # create the Agent Builder agent and its tools (safe to rerun)
+mise run elastic:setup             # create the indices, the agent and its tools, and the digest workflow (safe to rerun)
 mise run seed -- <url>             # push the sample talks in apps/web/seed/ through the real recording calls
 ```
 
@@ -57,7 +69,7 @@ The sample talks are invented, and their titles end in "(sample)".
 claude mcp add -t http asked <url>/mcp
 ```
 
-The agent gets three read-only tools: `search_archive`, `list_sessions`, and `get_session`.
+The agent gets three read-only tools: `search_archive`, `list_sessions`, and `get_session`. Any of the three replicas can answer any request, because the endpoint keeps nothing a later request needs (see `docs/adr/0002-mcp-route-outside-orpc.md`).
 
 ## Deploy to the Cluster
 
@@ -129,8 +141,8 @@ The cluster is already connected. To use it:
 ### Elastic
 
 1. Sign up at <https://ela.st/hack-kubecon> and create an **Elasticsearch** project ("Build AI and semantic search").
-2. On the project's page, copy the Elasticsearch endpoint and create an API key. Put them in `.env` as `ELASTICSEARCH_URL` and `ELASTICSEARCH_API_KEY`. Set `ELASTICSEARCH_ARCHIVE_INDEX` to something like `asked-archive-dev-<your name>` so your laptop doesn't write into the cluster's index.
-3. `mise run elastic:setup` creates the Agent Builder agent and its tools.
+2. On the project's page, copy the Elasticsearch endpoint and create an API key. Put them in `.env` as `ELASTICSEARCH_URL` and `ELASTICSEARCH_API_KEY`. Set `ELASTICSEARCH_ARCHIVE_INDEX` to something like `asked-archive-dev-<your name>` so your laptop doesn't write into the cluster's index. The agent's tools and the digest only read `asked-archive`.
+3. `mise run elastic:setup` creates the indices, the Agent Builder agent and its tools, and the digest workflow. `--run-workflow` also runs the digest once.
 4. `mise run k8s:deploy` copies the keys into the cluster's `web-elastic` Secret.
 
 The app indexes each segment as it arrives and each pair after a split, using the preconfigured `.jina-embeddings-v5-text-small` endpoint. Postgres stays the source of truth. Without the keys, recording still works and search reports that it isn't set up.

@@ -7,7 +7,7 @@ The Asked & Answered app: TanStack Start on Node, built with Nitro. See the root
 Development uses the cluster's Postgres. There is no local database container.
 
 ```sh
-mise run k8s:db               # from the repository root; forwards Postgres and prints DATABASE_URL
+mise run k8s:db               # from the repository root; forwards Postgres and prints the DATABASE_URL to export
 cp .env.example .env          # from the repository root; set DATABASE_URL and PRESENTER_CODE
 node --run dev
 ```
@@ -18,7 +18,7 @@ Migrations run when the app starts. Open `/record` to record a session, or run `
 
 ## Database
 
-`src/db/schema.ts` is the Drizzle schema (`sessions`, `segments`, `pairs`), and `src/db/index.ts` connects with `DATABASE_URL`. After changing the schema, `nr db:generate -- --name <what-changed>` writes a migration to `drizzle/`, and `nr db:migrate` applies it. `nr db:studio` opens a browser view of the data.
+`src/db/schema.ts` is the Drizzle schema (`sessions`, `segments`, `pairs`, and `ask_log`, which caps the Ask box's spending), and `src/db/index.ts` connects with `DATABASE_URL`. After changing the schema, `nr db:generate -- --name <what-changed>` writes a migration to `drizzle/`, and `nr db:migrate` applies it. `nr db:studio` opens a browser view of the data.
 
 ## Sample Data
 
