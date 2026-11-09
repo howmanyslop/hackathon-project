@@ -22,6 +22,10 @@ function rendersApp(command: string): boolean {
 	return command === "build" || !isComponentTooling;
 }
 
+function getDevExternals(command: string): Array<string> | undefined {
+	return command === "serve" ? ["@elastic/elasticsearch", "@openrouter/sdk", "json-rpc-2.0", "pg"] : undefined;
+}
+
 const config = defineConfig(({ command }) => ({
 	plugins: [
 		devtools(),
@@ -40,7 +44,7 @@ const config = defineConfig(({ command }) => ({
 	},
 	// Redact can only redirect React imports inside server dependencies that
 	// Vite bundles. Storybook and Vitest keep them external.
-	ssr: rendersApp(command) ? { noExternal: true } : undefined,
+	ssr: rendersApp(command) ? { external: getDevExternals(command), noExternal: true } : undefined,
 	test: {
 		projects: [
 			{
