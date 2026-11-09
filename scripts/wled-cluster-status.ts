@@ -95,7 +95,7 @@ function openSerial(options: Options): Serial {
 		`stty -F ${options.port} 115200 raw -echo`,
 		`exec 3>${options.port}`,
 		String.raw`while IFS= read -r line; do printf "%s\n" "$line" >&3; sleep 0.1; done`,
-	].join("; ");
+	].join(" && ");
 
 	const child = spawn("ssh", [...SSH_OPTIONS, options.ssh, script], {
 		stdio: ["pipe", "inherit", "inherit"],
@@ -103,6 +103,12 @@ function openSerial(options: Options): Serial {
 
 	child.on("exit", (code) => {
 		log.warn(`serial link closed (exit ${String(code)}); reconnecting on the next tick`);
+	});
+	child.on("error", (error) => {
+		log.warn(`serial link error: ${error.message}`);
+	});
+	child.stdin.on("error", (error) => {
+		log.warn(`serial write failed: ${error.message}`);
 	});
 
 	return child;
@@ -154,13 +160,25 @@ async function runBridgeAsync(options: Options): Promise<void> {
 
 		if (!isOpen(state.serial)) {
 			state.serial = openSerial(options);
+			// A new link may mean a reset board, so resend every zone on the
+			// next tick.
+			state.lastResync = 0;
 		}
 
 		state.serial.stdin.write(`${line}\n`);
 	}
 
 	function handleLine(line: string): void {
-		const parsed = WatchLine(JSON.parse(line));
+		let raw: unknown;
+
+		try {
+			raw = JSON.parse(line);
+		} catch {
+			log.warn(`unreadable watcher line: ${line.slice(0, 80)}`);
+			return;
+		}
+
+		const parsed = WatchLine(raw);
 		if (parsed instanceof type.errors) {
 			log.warn(`unreadable watcher line: ${parsed.summary}`);
 			return;
@@ -191,6 +209,12 @@ async function runBridgeAsync(options: Options): Promise<void> {
 		createInterface({ input: watcher.stdout }).on("line", handleLine);
 		watcher.on("exit", (code) => {
 			log.warn(`node watcher exited (${String(code)}); restarting`);
+		});
+		watcher.on("error", (error) => {
+			log.warn(`node watcher error: ${error.message}`);
+		});
+		watcher.stdin.on("error", (error) => {
+			log.warn(`node watcher input failed: ${error.message}`);
 		});
 		state.watcher = watcher;
 	}
