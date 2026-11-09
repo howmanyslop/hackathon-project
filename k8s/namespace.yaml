@@ -1,0 +1,7 @@
+# Everything for the app lives in this namespace, apart from the rest of the
+# shared cluster. `kubectl delete namespace web` removes all of it, data too.
+apiVersion: v1
+kind: Namespace
+
+metadata:
+  name: web

@@ -1,0 +1,22 @@
+# Keeps `docker build` contexts small. The workspace package folders (.claude,
+# .opencode) stay in, because pnpm reads every workspace package.json.
+.git
+**/node_modules
+**/.turbo
+**/.output
+**/.nitro
+**/.tanstack
+**/dist
+**/storybook-static
+**/coverage
+# Vite bakes VITE_* values from any .env file into public browser code.
+**/.env
+**/.env.*
+!**/.env.example
+.eslintcache-*
+.rumdl_cache
+.fallow
+.agents
+.pi
+.vale
+.mise
