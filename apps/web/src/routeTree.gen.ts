@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as HealthzRouteImport } from './routes/healthz'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as QuestionsRouteImport } from './routes/questions'
 import { Route as RecordRouteImport } from './routes/record'
 import { Route as SessionsIndexRouteImport } from './routes/sessions.index'
 import { Route as SessionsSessionIdRouteImport } from './routes/sessions.$sessionId'
@@ -30,6 +31,11 @@ const HealthzRoute = HealthzRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuestionsRoute = QuestionsRouteImport.update({
+  id: '/questions',
+  path: '/questions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecordRoute = RecordRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/healthz': typeof HealthzRoute
   '/mcp': typeof McpRoute
+  '/questions': typeof QuestionsRoute
   '/record': typeof RecordRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/sessions/': typeof SessionsIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/healthz': typeof HealthzRoute
   '/mcp': typeof McpRoute
+  '/questions': typeof QuestionsRoute
   '/record': typeof RecordRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/sessions': typeof SessionsIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/healthz': typeof HealthzRoute
   '/mcp': typeof McpRoute
+  '/questions': typeof QuestionsRoute
   '/record': typeof RecordRoute
   '/sessions/$sessionId': typeof SessionsSessionIdRoute
   '/sessions/': typeof SessionsIndexRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/healthz'
     | '/mcp'
+    | '/questions'
     | '/record'
     | '/sessions/$sessionId'
     | '/sessions/'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/healthz'
     | '/mcp'
+    | '/questions'
     | '/record'
     | '/sessions/$sessionId'
     | '/sessions'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/healthz'
     | '/mcp'
+    | '/questions'
     | '/record'
     | '/sessions/$sessionId'
     | '/sessions/'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   HealthzRoute: typeof HealthzRoute
   McpRoute: typeof McpRoute
+  QuestionsRoute: typeof QuestionsRoute
   RecordRoute: typeof RecordRoute
   SessionsSessionIdRoute: typeof SessionsSessionIdRoute
   SessionsIndexRoute: typeof SessionsIndexRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/questions': {
+      id: '/questions'
+      path: '/questions'
+      fullPath: '/questions'
+      preLoaderRoute: typeof QuestionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/record': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   HealthzRoute: HealthzRoute,
   McpRoute: McpRoute,
+  QuestionsRoute: QuestionsRoute,
   RecordRoute: RecordRoute,
   SessionsSessionIdRoute: SessionsSessionIdRoute,
   SessionsIndexRoute: SessionsIndexRoute,
