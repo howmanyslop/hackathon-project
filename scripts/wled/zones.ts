@@ -32,9 +32,12 @@ export interface Zone {
 
 // WLED v16 effect and palette ids.
 const EFFECT = { blink: 1, breathe: 2, colorwaves: 67, fireworks: 42, heartbeat: 100, solid: 0 } as const;
-const PALETTE = { colorOne: 2, fire: 35, forest: 10, lava: 8 } as const;
+const PALETTE = { colorOne: 2, colorsOneAndTwo: 3, forest: 10 } as const;
 
 const AMBER: Rgb = [255, 120, 0];
+const GOLD: Rgb = [255, 215, 0];
+const ORANGE: Rgb = [255, 140, 0];
+const RED_ORANGE: Rgb = [255, 45, 0];
 const BLACK: Rgb = [0, 0, 0];
 const DIM_RED: Rgb = [24, 0, 0];
 const RED: Rgb = [255, 0, 0];
@@ -62,18 +65,18 @@ export const LOOKS = {
 	},
 	critical: {
 		name: "critical",
-		colors: [BLACK, BLACK],
+		colors: [RED_ORANGE, ORANGE],
 		effect: EFFECT.colorwaves,
 		intensity: 128,
-		palette: PALETTE.lava,
+		palette: PALETTE.colorsOneAndTwo,
 		speed: 110,
 	},
 	degraded: {
 		name: "degraded",
-		colors: [BLACK, BLACK],
+		colors: [ORANGE, GOLD],
 		effect: EFFECT.colorwaves,
 		intensity: 128,
-		palette: PALETTE.fire,
+		palette: PALETTE.colorsOneAndTwo,
 		speed: 60,
 	},
 	down: {
