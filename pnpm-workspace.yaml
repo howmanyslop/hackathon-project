@@ -101,6 +101,10 @@ catalogs:
     pg: 8.23.1
   frontend:
     "@base-ui/react": 1.9.0
+    "@fontsource-variable/ibm-plex-sans": 5.3.0
+    "@fontsource-variable/newsreader": 5.3.0
+    "@fontsource/ibm-plex-mono": 5.3.0
+    "@modelcontextprotocol/sdk": 1.32.2
     class-variance-authority: 0.7.1
     cn: 0.5.2
     react: 19.3.1

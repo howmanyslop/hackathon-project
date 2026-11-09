@@ -25,6 +25,10 @@
 	"dependencies": {
 		"@base-ui/react": "catalog:frontend",
 		"@elastic/elasticsearch": "catalog:database",
+		"@fontsource-variable/ibm-plex-sans": "catalog:frontend",
+		"@fontsource-variable/newsreader": "catalog:frontend",
+		"@fontsource/ibm-plex-mono": "catalog:frontend",
+		"@modelcontextprotocol/sdk": "catalog:frontend",
 		"@orpc/client": "catalog:orpc",
 		"@orpc/server": "catalog:orpc",
 		"@orpc/tanstack-query": "catalog:web",
