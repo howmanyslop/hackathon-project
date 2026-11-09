@@ -38,7 +38,8 @@ Add each one here: what we asked, what Radar found, and what we decided.
 
 | Time | Target | Result | Decision |
 | --- | --- | --- | --- |
-| 2026-11-09, ~13:18 | Pod `local-path-provisioner` in `kube-system` | Pending. Started in Radar Hub. | Pending |
+| 2026-11-09, ~13:18 | Pod `local-path-provisioner` in `kube-system` | Started in Radar Hub; the conclusion was not read. | None |
+| 2026-11-09, ~13:24 | Deployment `web` in `web` | All-clear, certainty "established", confidence 0.9. Rollout complete, 3 of 3 pods ready. The only warning was three readiness-probe failures at 19:37:22Z (connection refused), which matched the app starting to listen in the same second during the rolling update. No warnings since. | The probe warning needs no change. Its mention of the `automountServiceAccountToken` audit finding led us to harden the pods from Checks (below). |
 
 ## Hardening from Checks
 
@@ -50,4 +51,15 @@ Branch `chore/radar-checks-hardening`:
 
 ## Checks: after
 
-Run Checks again after the hardening is deployed and paste the new summary here.
+Taken after the hardening was applied through Radar (pull request 5), about 13:40 local time.
+
+Summary: 0 critical, 0 high, 4 medium, 0 low (was 0 critical, 1 high, 10 medium).
+
+| Resource | Check | Severity | Status |
+| --- | --- | --- | --- |
+| StatefulSet `postgres` | runAsRoot | medium | Accepted: the official image starts as root and drops privileges itself |
+| StatefulSet `postgres` | readOnlyRootFs | medium | Accepted: Postgres needs writable directories |
+| Deployment `radar` | automountServiceAccountToken | medium | Radar's own install, not ours |
+| Deployment `radar` | singleReplica | medium | Radar's own install, not ours |
+
+All findings on the `web` Deployment are fixed, and so is the high-severity Postgres finding. The `web` rollout with a read-only root filesystem finished with 3 of 3 pods ready.
