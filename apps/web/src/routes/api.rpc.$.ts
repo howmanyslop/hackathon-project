@@ -3,8 +3,8 @@ import { SimpleCsrfProtectionHandlerPlugin } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
 
 import router from "$orpc/router";
+import { isBodyTooLarge } from "$server/body-limit";
 import { isCsrfSafeRequest } from "$server/csrf";
-import { isBodyTooLarge } from "$server/request-body";
 
 const rpcHandler = new RPCHandler(router, {
 	plugins: [new SimpleCsrfProtectionHandlerPlugin()],

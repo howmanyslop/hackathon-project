@@ -5,9 +5,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { createMcpTransport } from "$mcp/create-server";
+import { isBodyTooLarge } from "$server/body-limit";
 import { isCsrfSafeRequest } from "$server/csrf";
 import { createRateLimiter } from "$server/rate-limit";
-import { isBodyTooLarge } from "$server/request-body";
 
 import type { HttpTransport } from "@tmcp/transport-http";
 
