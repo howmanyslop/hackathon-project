@@ -14,3 +14,6 @@ todos.json
 
 *storybook.log
 storybook-static
+
+# Moonshine Tiny (27 MB); scripts/fetch-speech-model.ts downloads it.
+/public/models/

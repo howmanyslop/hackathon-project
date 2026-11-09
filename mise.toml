@@ -350,6 +350,30 @@ run = """
 git commit --signoff --message "${usage_message?}"
 """
 
+[tasks.dev]
+description = "Runs every app's dev server against the cluster's Postgres, forwarding it first."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+password="$(kubectl --namespace web get secret web-postgres --output jsonpath='{.data.password}' | base64 --decode)"
+code="$(kubectl --namespace web get secret web-presenter --output jsonpath='{.data.code}' | base64 --decode)"
+
+# The forward lives as long as the dev server and stops with it.
+kubectl --namespace web port-forward service/postgres 5432:5432 >/dev/null &
+forward=$!
+trap 'kill "${forward}" 2>/dev/null || true' EXIT
+sleep 2
+if ! kill -0 "${forward}" 2>/dev/null; then
+	echo "Couldn't forward the cluster's Postgres to localhost:5432. Is something else on that port?" >&2
+	exit 1
+fi
+
+export DATABASE_URL="postgres://web:${password}@localhost:5432/web"
+# The cluster's presenter code, unless .env or the shell sets another.
+export PRESENTER_CODE="${PRESENTER_CODE:-${code}}"
+node --run dev
+'''
+
 [tasks.init]
 description = "Turns a copy of this template into a new project (rename, fresh git, install)."
 usage = """

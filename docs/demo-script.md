@@ -24,9 +24,9 @@ Here is the session page on a laptop. The talk is still running, and its sentenc
 
 ## Was this already asked? (0:55 to 1:25)
 
-On screen: the home page. Search "what happens when a machine goes down", then click the first result.
+On screen: the home page. Search "what happens when a server goes down", then click the first result.
 
-Now an attendee wonders: was my question already asked? We search for "what happens when a machine goes down". The archive finds it in two different talks, asked in different words: one about traffic when a node dies, one about traces when the collector's node dies. One click jumps to that exact passage.
+Now an attendee wonders: was my question already asked? We search for "what happens when a server goes down". The archive finds it in two different talks, asked in different words: one about traffic when a node dies, one about traces when the collector's node dies. One click jumps to that exact passage.
 
 ## Ask the archive (1:25 to 1:45)
 

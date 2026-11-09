@@ -22,9 +22,10 @@ Every question typed into the search field or the Ask box is saved to the `quest
 ```sh
 mise trust && mise install
 pnpm install
-mise run k8s:db               # forwards the cluster's Postgres to localhost:5432
-node --run dev
+mise run dev                  # forwards the cluster's Postgres, then starts the dev server
 ```
+
+`mise run dev` reads the database password and the presenter code from the cluster, so `.env` needs neither. To run the two steps yourself, use `mise run k8s:db` in one terminal and `node --run dev` in another, with `DATABASE_URL` set as that task prints.
 
 `apps/web/README.md` has the details, and `AGENTS.md` describes the commands and conventions.
 
