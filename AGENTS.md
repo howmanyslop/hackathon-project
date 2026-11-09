@@ -47,6 +47,7 @@ nr --filter '@web-template/web' build              # Nitro build to .output/ (st
 nr --filter '@web-template/web' db:generate        # drizzle-kit: new migration from src/db/schema.ts
 nr --filter '@web-template/web' db:migrate         # apply migrations to DATABASE_URL (the app also migrates at startup)
 nr --filter '@web-template/web' shadcn add <name>  # add a Base UI component under src/components/ui
+nr --filter '@web-template/web' speech-model:fetch  # download the on-device speech model into public/models/
 ```
 
 Cluster tasks (see `README.md` for setup):
@@ -98,7 +99,7 @@ Imports across `src` folders use one `$` alias per top-level folder (`$component
 - `llm/` asks an LLM for JSON: Elastic inference (`ELASTIC_LLM_INFERENCE_ID`) first, then OpenRouter through `@openrouter/sdk` (`OPENROUTER_API_KEY`, `OPENROUTER_MODEL`). Elastic's managed LLM answers 403 for this project today, so OpenRouter does the split.
 - `agent/` calls the Elastic Agent Builder agent (`ELASTIC_AGENT_ID`, through `KIBANA_URL`) for the Ask box. Every question is logged in `ask_log` before it is sent: the app refuses an eleventh question within a minute and stops once the logged cost reaches `ASK_BUDGET_USD` (default $15; the digest workflow's own cap of about $5 brings the total to $20). `ask-budget.ts` holds the money math. The answer's sources are only the tool rows it quotes, by time and session title (`quoted-sources.ts`).
 - `mcp/` is a read-only MCP server built with `tmcp` and its ArkType adapter (no zod), one file per tool in `mcp/tools/`. `routes/mcp.ts` serves it, the one route outside oRPC (see `docs/adr/0002-mcp-route-outside-orpc.md`).
-- `features/` holds the UI for each route: archive, sessions, and the recorder. Speech-to-text runs in the browser; the server only receives text (see `docs/adr/0001-server-receives-text-only.md`).
+- `features/` holds the UI for each route: archive, sessions, and the recorder. Speech-to-text runs in the browser; the server only receives text (see `docs/adr/0001-server-receives-text-only.md`). The browser's own recognizer is used when it has one. Otherwise `features/recorder/moonshine/` runs Moonshine Tiny on the phone with `onnxruntime-web`, which is why the Content Security Policy allows `'wasm-unsafe-eval'`. `/record?engine=model` forces it. The model (27 MB) lives in the git-ignored `apps/web/public/models/`; `speech-model:fetch` downloads it and checks its hashes.
 - Recording procedures need `PRESENTER_CODE`. Reading is public.
 - Questions (`/questions`, `features/questions/`) is the history of what attendees ask, for presenters. `searchArchive` and `askArchive` save each question in `question_log` with no name attached, plus how many answered questions or sources it found (`archive/question-log.ts`, which never throws, so a lost row never fails a search). `listAskedQuestions` groups them by text, ignoring case, and needs `PRESENTER_CODE`, because strangers write that text.
 

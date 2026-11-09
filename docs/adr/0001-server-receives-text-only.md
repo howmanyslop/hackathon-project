@@ -10,7 +10,7 @@ Talks are recorded on the presenter's phone. Sending audio to our server would m
 
 ## Decision
 
-Speech-to-text runs in the phone's browser, through its built-in recognizer. That recognizer may send the audio to the browser maker's speech service (Chrome uses Google's servers, and Safari may use Apple's), but our server never sees it. The recorder sends finished sentences as segments, in small batches every few seconds. The server never receives or stores audio or video. A Moonshine model running in the browser is planned as a fallback for browsers without a recognizer; it is not built yet.
+Speech-to-text runs in the phone's browser, through its built-in recognizer. That recognizer may send the audio to the browser maker's speech service (Chrome uses Google's servers, and Safari may use Apple's), but our server never sees it. The recorder sends finished sentences as segments, in small batches every few seconds. The server never receives or stores audio or video. Browsers without a recognizer download a small model (Moonshine Tiny, 27 MB) from our server and run it on the phone, so with that fallback the audio never leaves the device at all.
 
 ## Consequences
 

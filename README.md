@@ -2,7 +2,7 @@
 
 The Q&A at the end of a talk is often the best part, and it's gone the moment the talk ends. Asked & Answered keeps it. The presenter's phone turns the talk into text as they speak. The app splits the Q&A part into question-and-answer pairs, and everything lands in one archive you can search by meaning. During the conference, attendees can check whether their question was already asked. Afterward, people and their AI agents can search every session and jump to the passage.
 
-Only text reaches the server. The phone's browser does the speech-to-text (Chrome uses Google's speech service for it), and no audio or video is stored.
+Only text reaches the server. The phone's browser does the speech-to-text (Chrome uses Google's speech service for it), and no audio or video is stored. A browser with no speech-to-text of its own downloads a small model from the app and runs it on the phone instead; before a deploy from a fresh clone, `nr --filter '@web-template/web' speech-model:fetch` puts that model in place.
 
 ## Pages
 
