@@ -25,6 +25,7 @@ cargo.binstall_native = true
 "pipx:sqlfluff" = "latest"
 betterleaks = "latest"
 bun = "latest"
+container = { version = "latest", os = ["macos/arm64"] }
 direnv = "latest"
 harper-cli = "2.9.1"
 hk = { version = "2.11.1", workflow = "release.yml" }

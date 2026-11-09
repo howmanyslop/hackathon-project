@@ -122,6 +122,17 @@ url = "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-windows-x
 checksum = "sha256:0f20ce6674d4f2dbcc8c5d59fdf99f7ba45f8c3b367e0f5781cbfa30a1c78d99"
 url = "https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-windows-x64-baseline.zip"
 
+[[tools.container]]
+version = "1.6.1"
+backend = "aqua:apple/container"
+specifiers = ["latest"]
+
+[tools.container."platforms.macos-arm64"]
+checksum = "sha256:cd47846819f06478d067060efe21e516b562ac0a9af8eecad6d5fea0b556b200"
+checksum_source = "mise-versions"
+url = "https://github.com/apple/container/releases/download/1.6.1/container-1.6.1-installer-signed.pkg"
+url_api = "https://api.github.com/repos/apple/container/releases/assets/670899125"
+
 [[tools.direnv]]
 version = "2.38.2"
 backend = "aqua:direnv/direnv"
