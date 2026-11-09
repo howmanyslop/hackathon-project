@@ -31,7 +31,7 @@ export function PairsList({ session }: Readonly<PairsListProperties>): ReactNode
 	}
 
 	return (
-		<ol className="rule-list">
+		<ol className="rule-list enter-list">
 			{session.pairs.map((pair) => (
 				<li key={pair.ordinal}>
 					<p className="pair-question">{pair.question}</p>

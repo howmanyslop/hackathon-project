@@ -22,10 +22,10 @@ export interface AskAnswerProperties {
  */
 export function AskAnswer({ answer }: AskAnswerProperties): ReactNode {
 	return (
-		<div className="grid gap-3">
+		<div className="ask-answer grid gap-3">
 			<p className="caption whitespace-pre-line">{stripEmphasis(answer.answer)}</p>
 			{answer.sources.length > 0 ? (
-				<ul className="source-list">
+				<ul className="source-list enter-list is-sources">
 					{answer.sources.map((source) => (
 						<li key={`${source.sessionId}-${source.startMs}`}>
 							<Link

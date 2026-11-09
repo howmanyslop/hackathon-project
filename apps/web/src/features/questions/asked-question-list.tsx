@@ -27,7 +27,7 @@ export interface AskedQuestionListProperties {
  */
 export function AskedQuestionList({ questions }: Readonly<AskedQuestionListProperties>): ReactNode {
 	return (
-		<ol className="rule-list">
+		<ol className="rule-list enter-list">
 			{questions.map((question) => {
 				let answerLink: ReactNode;
 				if (question.isAnswered) {

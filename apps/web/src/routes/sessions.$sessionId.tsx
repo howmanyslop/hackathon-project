@@ -81,7 +81,11 @@ function SessionPage(): ReactNode {
 	useEffect(
 		function scrollToMarkedPassage() {
 			if (markedSequence === undefined) return;
-			document.querySelector(`#segment-${markedSequence}`)?.scrollIntoView({ block: "center" });
+			const passage = document.querySelector<HTMLElement>(`#segment-${markedSequence}`);
+			if (passage === null) return;
+			passage.scrollIntoView({ block: "center" });
+			// The marker draws once the passage is on screen (styles.css).
+			passage.dataset.arrived = "true";
 		},
 		[markedSequence],
 	);

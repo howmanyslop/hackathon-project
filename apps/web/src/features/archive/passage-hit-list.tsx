@@ -16,7 +16,7 @@ export interface PassageHitListProperties {
  */
 export function PassageHitList({ passages }: PassageHitListProperties): ReactNode {
 	return (
-		<ol className="rule-list">
+		<ol className="rule-list enter-list is-passages">
 			{passages.map((passage) => (
 				<li key={`${passage.sessionId}-${passage.startMs}`}>
 					<p className="body-text">{passage.text}</p>

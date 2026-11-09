@@ -17,7 +17,7 @@ export interface PairHitListProperties {
  */
 export function PairHitList({ pairs }: PairHitListProperties): ReactNode {
 	return (
-		<ol className="rule-list">
+		<ol className="rule-list enter-list is-results">
 			{pairs.map((pair) => (
 				<li key={`${pair.sessionId}-${pair.startMs}`}>
 					<p className="pair-question">{pair.question}</p>

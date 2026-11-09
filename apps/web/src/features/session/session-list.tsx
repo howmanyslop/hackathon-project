@@ -36,7 +36,7 @@ export function SessionList({ sessions }: Readonly<SessionListProperties>): Reac
 	}
 
 	return (
-		<ol className="rule-list">
+		<ol className="rule-list enter-list">
 			{sessions.map((session) => (
 				<li key={session.id}>
 					<Link className="caption" params={{ sessionId: String(session.id) }} to="/sessions/$sessionId">
