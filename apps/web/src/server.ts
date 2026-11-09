@@ -1,5 +1,7 @@
 import handler from "@tanstack/react-start/server-entry";
 
+import { migrateDatabaseAsync } from "$db/migrate";
+
 const SECURITY_HEADERS = {
 	"Referrer-Policy": "strict-origin-when-cross-origin",
 	// Plain-http answers ignore this, so it is safe to set everywhere.
@@ -49,19 +51,25 @@ function addSecurityHeaders(response: Response): Response {
 	return response;
 }
 
+// Starts once, when the server boots. Every request waits for it, `/healthz`
+// included, so Kubernetes sends no traffic to a copy whose schema is behind.
+// If it fails, Node exits on the unhandled rejection (or requests fail until
+// the liveness check gives up), and Kubernetes restarts the pod to retry.
+const migration = migrateDatabaseAsync();
+
 /**
- * The Worker's entry: TanStack Start answers every request, and each response
- * leaves with the security headers below. Add a `scheduled` handler here when
- * `cloudflare.config.ts` gets a cron trigger.
+ * The server's entry: TanStack Start answers every request, and each response
+ * leaves with the security headers above. Nitro wraps this in a Node server.
  *
  * @param request - The incoming request.
  * @returns TanStack Start's response, with the headers added.
  */
 async function handleFetchAsync(request: Request): Promise<Response> {
+	await migration;
 	const response = await handler.fetch(request);
 	return addSecurityHeaders(response);
 }
 
-const worker = { fetch: handleFetchAsync };
+const server = { fetch: handleFetchAsync };
 
-export default worker;
+export default server;

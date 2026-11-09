@@ -12,6 +12,8 @@ import type { OxlintConfig, OxlintFactoryOptions } from "@isentinel/eslint-confi
 const CONFIGURATION_FILES = `**/*.config.${GLOB_SRC_EXT}`;
 const SCRIPT_FILES = `scripts/${GLOB_SRC}`;
 const HOOK_FILES = ".c{laude,odex}/hooks/**/*.ts";
+
+const SERVER_ENTRY_FILES = "apps/*/serve.ts";
 const REACT_DOCTOR_PLUGIN = { name: "react-doctor", specifier: "oxlint-plugin-react-doctor" };
 const APP_SOURCE = "apps/*/src/**/*.{ts,tsx}";
 
@@ -766,7 +768,7 @@ export async function getOxlintAsync({
 		},
 		{
 			name: "web-template/allow-top-level-await",
-			files: [SCRIPT_FILES, CONFIGURATION_FILES, HOOK_FILES, "apps/*/src/**/*.astro"],
+			files: [SCRIPT_FILES, CONFIGURATION_FILES, HOOK_FILES, SERVER_ENTRY_FILES, "apps/*/src/**/*.astro"],
 			rules: {
 				"antfu/no-top-level-await": "off",
 				"node/no-top-level-await": "off",
@@ -774,7 +776,7 @@ export async function getOxlintAsync({
 		},
 		{
 			name: "web-template/not-browser",
-			files: [SCRIPT_FILES, CONFIGURATION_FILES, HOOK_FILES],
+			files: [SCRIPT_FILES, CONFIGURATION_FILES, HOOK_FILES, SERVER_ENTRY_FILES],
 			rules: {
 				"import/no-nodejs-modules": "off",
 				"no-console": "off",

@@ -62,7 +62,6 @@
 		"@vitest/eslint-plugin": "catalog:lint",
 		"@web-template/lint-configurations": "workspace:*",
 		"@web-template/linter-utilities": "workspace:*",
-		"cf": "catalog:tooling",
 		"clerk": "catalog:tooling",
 		"eslint": "catalog:lint",
 		"eslint-plugin-antfu": "catalog:lint",

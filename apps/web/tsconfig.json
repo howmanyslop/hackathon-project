@@ -7,8 +7,13 @@
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"paths": {
-			"#/*": ["./src/*"],
-			"@/*": ["./src/*"]
+			"$components/*": ["./src/components/*"],
+			"$db/*": ["./src/db/*"],
+			"$hooks/*": ["./src/hooks/*"],
+			"$integrations/*": ["./src/integrations/*"],
+			"$lib/*": ["./src/lib/*"],
+			"$orpc/*": ["./src/orpc/*"],
+			"$server/*": ["./src/server/*"]
 		},
 		"types": ["vite/client"],
 		"allowImportingTsExtensions": true,
@@ -21,5 +26,5 @@
 		"skipLibCheck": true,
 		"noUncheckedSideEffectImports": true
 	},
-	"include": ["**/*.ts", "**/*.tsx", ".cloudflare/types/index.d.ts", ".storybook/**/*.ts", ".storybook/**/*.tsx"]
+	"include": ["**/*.ts", "**/*.tsx", ".storybook/**/*.ts", ".storybook/**/*.tsx"]
 }

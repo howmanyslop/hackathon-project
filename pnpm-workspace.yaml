@@ -22,8 +22,6 @@ minimumReleaseAgeExclude:
   - "@typescript-eslint/*"
   - "@vitest/*"
   - "@voidzero-dev/*"
-  - cf
-  - miniflare
   - oxfmt
   - oxlint
   - oxlint-tsgolint
@@ -91,15 +89,15 @@ catalogs:
   build:
     "@arethetypeswrong/core": 0.18.5
     publint: 0.3.25
-  cf:
-    "@cloudflare/vite-plugin": 2.0.0-beta.v.4
   commitlint:
     "@commitlint/cli": 21.2.4
     "@commitlint/config-conventional": 21.2.4
     "@commitlint/types": 21.2.3
   database:
+    "@types/pg": 8.23.1
     drizzle-kit: 0.31.11
     drizzle-orm: 0.45.4
+    pg: 8.23.1
   frontend:
     "@base-ui/react": 1.9.0
     class-variance-authority: 0.7.1
@@ -190,7 +188,6 @@ catalogs:
     "@pobammer-ts/lsp-mux": 3.2.0
     "@turbo/gen": 2.11.10
     "@vitest/browser-playwright": 5.1.0
-    cf: 1.0.0-beta.28
     clerk: 4.1.0
     jiti: 2.7.0
     playwright: 1.65.0
@@ -215,13 +212,12 @@ catalogs:
   vite:
     "@tailwindcss/vite": 4.3.4
     "@vitejs/plugin-react": 6.2.1
+    nitro: 3.0.261103-rc
   web:
     "@orpc/tanstack-query": ^1.13.6
     "@rolldown/plugin-babel": ^0.2.3
     "@tailwindcss/typography": ^0.5.16
     babel-plugin-react-compiler: ^1.0.0
-    tsx: ^4.21.0
-    zod: ^4.3.6
 
 allowBuilds:
   "@google/genai": true
@@ -241,6 +237,12 @@ packageExtensions:
   "@tanstack/react-form@1.33.5":
     dependencies:
       "@types/react": 19.3.0
+  # drizzle-kit imports drizzle-orm and pg at runtime without declaring them, so
+  # the global virtual store hides them. As peers, they resolve to the app's.
+  drizzle-kit:
+    peerDependencies:
+      drizzle-orm: "*"
+      pg: "*"
   storybook@10:
     dependencies:
       "@storybook/react-vite": 10.6.1

@@ -1,0 +1,9 @@
+# `kubectl apply -k k8s` applies everything below into the `web` namespace.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: web
+
+resources:
+  - namespace.yaml
+  - postgres.yaml
+  - web.yaml

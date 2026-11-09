@@ -2,8 +2,8 @@ import { RPCHandler } from "@orpc/server/fetch";
 import { SimpleCsrfProtectionHandlerPlugin } from "@orpc/server/plugins";
 import { createFileRoute } from "@tanstack/react-router";
 
-import router from "#/orpc/router";
-import { isCsrfSafeRequest } from "#/server/csrf";
+import router from "$orpc/router";
+import { isCsrfSafeRequest } from "$server/csrf";
 
 const rpcHandler = new RPCHandler(router, {
 	plugins: [new SimpleCsrfProtectionHandlerPlugin()],

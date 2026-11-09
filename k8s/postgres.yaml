@@ -1,0 +1,77 @@
+# One Postgres server. Its password lives in the `web-postgres` Secret, which
+# `mise run k8s:deploy` creates once with a random value; it is never committed.
+apiVersion: apps/v1
+kind: StatefulSet
+
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+  serviceName: postgres
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+    spec:
+      containers:
+        - name: postgres
+          env:
+            - name: POSTGRES_DB
+              value: web
+            - name: POSTGRES_USER
+              value: web
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: web-postgres
+                  key: password
+          image: postgres:18-alpine
+          ports:
+            - name: postgres
+              containerPort: 5432
+          readinessProbe:
+            exec:
+              command: [pg_isready, --username=web, --dbname=web]
+            periodSeconds: 5
+          resources:
+            limits:
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            # Postgres 18 images keep data under /var/lib/postgresql/18.
+            - name: data
+              mountPath: /var/lib/postgresql
+  # k3s's default `local-path` storage: a folder on whichever machine runs the
+  # pod. Fine for a hackathon; the data is gone if that machine is.
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: postgres
+  labels:
+    app.kubernetes.io/name: postgres
+
+spec:
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+  selector:
+    app.kubernetes.io/name: postgres

@@ -1,10 +1,7 @@
-import { sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
-export const todos = sqliteTable("todos", {
-	id: integer({ mode: "number" }).primaryKey({
-		autoIncrement: true,
-	}),
-	createdAt: integer("created_at", { mode: "timestamp" }).default(sql`(unixepoch())`),
-	title: text().notNull(),
+export const todos = pgTable("todos", {
+	id: integer().primaryKey().generatedAlwaysAsIdentity(),
+	name: text().notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

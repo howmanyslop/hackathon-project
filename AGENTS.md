@@ -4,7 +4,7 @@ This file gives agents guidance for working with code in this repository.
 
 ## What This Is
 
-A web project monorepo. The app lives in `apps/web`: TanStack Start and React 19 on Cloudflare Workers, with D1 (SQLite) through Drizzle, oRPC, and TanStack Query. Everything else (`packages/*`, `tools/*`, `.opencode`, `scripts`, `turbo/generators`) is shared utilities and developer tooling.
+A web project monorepo. The app lives in `apps/web`: TanStack Start and React 19 on Node (Nitro), with Postgres through Drizzle, oRPC, and TanStack Query. It deploys to the team's k3s cluster (`k8s/`). Everything else (`packages/*`, `tools/*`, `.opencode`, `scripts`, `turbo/generators`) is shared utilities and developer tooling.
 
 ## Workspaces
 
@@ -13,15 +13,16 @@ A web project monorepo. The app lives in `apps/web`: TanStack Start and React 19
 - `tools/lint-configurations`, `linter-utilities`, `vite-plus-configuration`: shared lint, formatter, and test configuration. Path-scoped lint overrides live in `tools/lint-configurations/src/get-oxlint-async.ts` and use `apps/*` globs.
 - `scripts`, `.claude`, `.opencode`: repository tooling and agent hooks. `.claude/hooks/react-doctor.ts` runs react-doctor after Claude edits files.
 
-CI (`.github/workflows/ci.yaml`) runs lint, type-check, file checks, dead code, unit tests, and builds. Browser tests run on pushes and on pull requests labeled `full-ci`. The deploy job stays off until the repository variable `DEPLOY_ENABLED` is `true`.
+CI (`.github/workflows/ci.yaml`) runs lint, type-check, file checks, dead code, unit tests, and builds. Browser tests run on pushes and on pull requests labeled `full-ci`. CI doesn't deploy; `mise run k8s:deploy` does, from a laptop.
 
 ## Tooling
 
 - Package manager is **pnpm** (pinned in `mise.toml`). Catalogs live in `pnpm-workspace.yaml`, and dependencies use `catalog:` specifiers. Node 26. Tools come from `mise`.
 - The test and build runner is **Vite+** (`vp`, Vitest underneath).
 - Type-checking uses `tsrs` (a native TypeScript 7 compiler), not the JavaScript `tsc` from TypeScript 6.
-- The root `.env` loads through mise and holds the Cloudflare values for D1 (`.env.example`). Production secrets belong in `apps/web/cloudflare.config.ts` as `bindings.secret()`.
-- Cloudflare config is `cloudflare.config.ts`, driven by the `cf` CLI (`cf deploy`, `cf workers types`, `cf d1 migrations apply`). Astro apps use `wrangler.jsonc`, because `cf` cannot build Astro 6 and later yet.
+- The root `.env` loads through mise and holds `DATABASE_URL` for local development (`.env.example`).
+- The repository and the `ghcr.io/howmanyslop/web` images are public. Production secrets live only in Kubernetes Secrets in the `web` namespace, created by `k8s:deploy`. Never commit a secret, a kubeconfig, or the cluster's Tailscale names or addresses, and never put a secret in a `VITE_*` variable.
+- `mise.toml` sets `KUBECONFIG` to `~/.kube/hackathon.yaml`, so `kubectl` in this repository only talks to the team cluster.
 
 ## Commands
 
@@ -41,12 +42,21 @@ node --run fallow:dead-code    # unused exports, files, and dependencies
 App scripts:
 
 ```sh
-nr --filter '@web-template/web' dev                # vp dev (Workers runtime and local D1)
-nr --filter '@web-template/web' deploy             # turbo build and type-check, then cf deploy --prebuilt
+nr --filter '@web-template/web' dev                # vp dev against DATABASE_URL
+nr --filter '@web-template/web' build              # Nitro build to .output/ (start: node .output/server/index.mjs)
 nr --filter '@web-template/web' db:generate        # drizzle-kit: new migration from src/db/schema.ts
-nr --filter '@web-template/web' db:migrate         # apply migrations to local D1 (db:migrate:remote for production)
-nr --filter '@web-template/web' cf-typegen         # regenerate .cloudflare/types after editing cloudflare.config.ts
+nr --filter '@web-template/web' db:migrate         # apply migrations to DATABASE_URL (the app also migrates at startup)
 nr --filter '@web-template/web' shadcn add <name>  # add a Base UI component under src/components/ui
+```
+
+Cluster tasks (see `README.md` for setup):
+
+```sh
+mise run k8s:deploy    # build linux/amd64 image, scan it for secrets, push to ghcr.io, apply k8s/
+mise run k8s:status    # pods, services, ingress, volumes in the web namespace
+mise run k8s:logs      # follow the app's logs
+mise run k8s:db        # port-forward the cluster's Postgres to localhost:5432
+mise run k8s:down      # delete the web namespace, database included (asks first)
 ```
 
 Unit tests (`src/**/*.test.ts`) run in Node through `apps/web/vitest.unit.config.ts`. Stories (`*.stories.tsx`) double as browser tests through the `storybook` project in `apps/web/vite.config.ts`.
@@ -57,6 +67,7 @@ Unit tests (`src/**/*.test.ts`) run in Node through `apps/web/vitest.unit.config
 
 - **TanStack Start** runs TanStack's own CLI (`tanstack create`) with pnpm, Vite, no toolchain, and the Cloudflare target fixed, then asks its add-on questions. Afterwards it adapts the output: catalogs instead of version ranges, `cloudflare.config.ts` instead of Wrangler, `src/server.ts` with security headers, Drizzle on D1, oRPC limited to POST with CSRF checks, and shadcn on Base UI.
 - **Astro** writes a small Astro site with React islands and `wrangler.jsonc`.
+- The generators still target Cloudflare Workers, and the TanStack one fails at `cf workers types` because `cf` was removed. They need updating before use.
 - `package`, `multi-entry-package`, and `opencode-plugin` add workspace packages.
 
 ## Git Hooks and Commits
@@ -67,16 +78,22 @@ Commit messages follow Conventional Commits, enforced by `commitlint`: a header 
 
 `.claude/settings.json` adds a `PreToolUse` gate that runs `fallow audit` before Claude commits or pushes, and a `Stop` hook that runs `hk run check --safe`.
 
-Do not hand-edit generated code (`*.gen.ts`, `.cloudflare/`, `src/components/ui/`). Linting skips it.
+Do not hand-edit generated code (`*.gen.ts`, `src/components/ui/`, generated SQL in `drizzle/`). Linting skips it.
 
 ## Architecture (`apps/web/src`)
 
-Imports use the `#/*` subpath alias for `src/*`.
+Imports across `src` folders use one `$` alias per top-level folder (`$components/*`, `$db/*`, `$orpc/*`, and so on), set in `apps/web/tsconfig.json`.
 
 - `routes/` is TanStack Router file-based routing. `routeTree.gen.ts` is generated.
-- `server.ts` is the Worker entry: TanStack Start's handler plus security headers and a Content Security Policy. Add a `scheduled` handler here for cron triggers.
+- `server.ts` is the server entry: TanStack Start's handler plus security headers and a Content Security Policy. Nitro wraps it in a Node server. It runs database migrations once at startup (`db/migrate.ts`), and every request, `/healthz` included, waits for them.
+- `routes/healthz.ts` answers Kubernetes' readiness and liveness checks.
 - All server calls go through one oRPC router (`orpc/router/index.ts`), mounted at `routes/api.rpc.$.ts`. It accepts POST only and checks CSRF (`server/csrf.ts`). `orpc/client.ts` calls the router in-process during SSR and over `/api/rpc` in the browser.
-- `db/` holds the Drizzle schema and the D1 client (`env.DB`). Migrations go in `drizzle/`.
+- `db/` holds the Drizzle schema and the Postgres client (`getDatabase()`, from `DATABASE_URL`). Migrations go in `drizzle/`.
+
+## Deployment (`k8s/`, `apps/web/Dockerfile`)
+
+- `k8s/` is plain manifests applied with Kustomize into the `web` namespace: Postgres (StatefulSet, `local-path` volume), the app (Deployment with two replicas, Service, Traefik Ingress with no host rule).
+- `apps/web/Dockerfile` builds on the host's CPU and ships a `linux/amd64` runtime with only `.output/` and `drizzle/`. Its `app-files` stage is what `k8s:deploy` scans for secrets.
 - `integrations/` wires TanStack Query into the router.
 - UI uses Tailwind 4 and shadcn on Base UI. React Compiler handles memoization, so `useMemo`, `useCallback`, and `memo` are banned, and so is `useEffect` by default.
 

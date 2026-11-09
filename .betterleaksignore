@@ -1,0 +1,6 @@
+# Confirmed false positives, one fingerprint per line (commit:file:rule:line).
+# Only add a line after checking the match is not a real secret.
+
+# A placeholder local-development URL (postgres:postgres@localhost), since
+# replaced with one that has no password.
+e00fb069b4b45b97e5f65c52993278cc2a009329:.env.example:generic-credential-uri:6

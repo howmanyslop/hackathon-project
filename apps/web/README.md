@@ -1,11 +1,18 @@
 # web
 
-TanStack Start on Cloudflare Workers. See the root `AGENTS.md` for commands and architecture.
+TanStack Start on Node, built with Nitro. See the root `AGENTS.md` for commands and architecture, and the root `README.md` for deploying to the cluster.
 
 ## First Run
 
-Run `node --run dev` from the repository root.
+The app needs Postgres. The quickest way is a local container:
+
+```sh
+docker run -d --name web-postgres -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=web -p 127.0.0.1:5432:5432 postgres:18-alpine
+cp .env.example .env          # from the repository root; sets DATABASE_URL
+nr --filter '@web-template/web' db:migrate
+node --run dev
+```
 
 ## Database
 
-`src/db/schema.ts` is the Drizzle schema. `nr db:generate` writes a migration to `drizzle/`. The first `cf deploy` creates the D1 database; put its id in `CLOUDFLARE_DATABASE_ID` (and in `cloudflare.config.ts`), then `nr db:migrate` applies migrations locally and `nr db:migrate:remote` applies them in production.
+`src/db/schema.ts` is the Drizzle schema, and `src/db/index.ts` connects with `DATABASE_URL`. After changing the schema, `nr db:generate -- --name <what-changed>` writes a migration to `drizzle/`, and `nr db:migrate` applies it. `nr db:studio` opens a browser view of the data.
