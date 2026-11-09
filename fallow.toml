@@ -3,10 +3,8 @@ entry = [
 	# except a type-only edge from the generated routeTree.gen.ts, so without
 	# this declaration it reads as dead the moment route generation changes.
 	"apps/*/src/start.ts",
-	# The D1 client: ready for routes to import once the app stores data.
+	# The database client: ready for routes to import once the app stores data.
 	"apps/*/src/db/index.ts",
-	# The cf project config; `cf` and the Cloudflare Vite plugin load it by name.
-	"apps/*/cloudflare.config.ts",
 	# react-doctor config. No fallow plugin detects it.
 	"doctor.config.ts",
 	# vitest setupFiles target, referenced from a runtime new URL() expression

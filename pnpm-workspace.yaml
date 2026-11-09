@@ -22,8 +22,6 @@ minimumReleaseAgeExclude:
   - "@typescript-eslint/*"
   - "@vitest/*"
   - "@voidzero-dev/*"
-  - cf
-  - miniflare
   - oxfmt
   - oxlint
   - oxlint-tsgolint
@@ -188,7 +186,6 @@ catalogs:
     "@pobammer-ts/lsp-mux": 3.2.0
     "@turbo/gen": 2.11.10
     "@vitest/browser-playwright": 5.1.0
-    cf: 1.0.0-beta.28
     clerk: 4.1.0
     jiti: 2.7.0
     playwright: 1.65.0
@@ -219,8 +216,6 @@ catalogs:
     "@rolldown/plugin-babel": ^0.2.3
     "@tailwindcss/typography": ^0.5.16
     babel-plugin-react-compiler: ^1.0.0
-    tsx: ^4.21.0
-    zod: ^4.3.6
 
 allowBuilds:
   "@google/genai": true
