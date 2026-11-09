@@ -50,9 +50,8 @@ function addSecurityHeaders(response: Response): Response {
 }
 
 /**
- * The Worker's entry: TanStack Start answers every request, and each response
- * leaves with the security headers below. Add a `scheduled` handler here when
- * `cloudflare.config.ts` gets a cron trigger.
+ * The server's entry: TanStack Start answers every request, and each response
+ * leaves with the security headers above. Nitro wraps this in a Node server.
  *
  * @param request - The incoming request.
  * @returns TanStack Start's response, with the headers added.
@@ -62,6 +61,6 @@ async function handleFetchAsync(request: Request): Promise<Response> {
 	return addSecurityHeaders(response);
 }
 
-const worker = { fetch: handleFetchAsync };
+const server = { fetch: handleFetchAsync };
 
-export default worker;
+export default server;
