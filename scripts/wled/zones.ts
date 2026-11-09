@@ -135,9 +135,9 @@ export function lookFor(zone: Zone, now: number, health: ClusterHealth = "health
 	if (zone.status === "down") return age < ALERT_MILLISECONDS ? LOOKS.alert : LOOKS.down;
 
 	if (zone.status === "ready") {
-		if (zone.recovering && age < RECOVERY_MILLISECONDS) return LOOKS.recovered;
+		if (health !== "healthy") return LOOKS[health];
 
-		return health === "healthy" ? LOOKS.ready : LOOKS[health];
+		return zone.recovering && age < RECOVERY_MILLISECONDS ? LOOKS.recovered : LOOKS.ready;
 	}
 
 	return LOOKS[zone.status];
