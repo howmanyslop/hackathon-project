@@ -1,12 +1,5 @@
 import handler from "@tanstack/react-start/server-entry";
 
-/**
- * Clerk's frontend API and script hosts. The development instance lives under
- * `clerk.accounts.dev`; add the production instance's own domain (like
- * `https://clerk.example.com`) before going live.
- */
-const CLERK_ORIGINS = ["https://*.clerk.accounts.dev"] as const;
-
 const SECURITY_HEADERS = {
 	"Referrer-Policy": "strict-origin-when-cross-origin",
 	// Plain-http answers ignore this, so it is safe to set everywhere.
@@ -19,12 +12,12 @@ const SECURITY_HEADERS = {
  * The policy every response carries. TanStack Start writes the router's
  * hydration state as inline scripts on each page and has no per-request
  * nonce, so inline script stays allowed; everything else may only come from
- * this origin or Clerk.
+ * this origin.
  *
  * @returns The `Content-Security-Policy` header value.
  */
 function getContentSecurityPolicy(): string {
-	const connect = ["'self'", ...CLERK_ORIGINS, "https://api.clerk.com"];
+	const connect = ["'self'"];
 	// Vite's hot reload talks over a WebSocket on the dev server's origin.
 	if (import.meta.env.DEV) {
 		connect.push("ws:", "wss:");
@@ -32,14 +25,14 @@ function getContentSecurityPolicy(): string {
 
 	return [
 		"default-src 'self'",
-		`script-src 'self' 'unsafe-inline' ${CLERK_ORIGINS.join(" ")} https://challenges.cloudflare.com`,
+		"script-src 'self' 'unsafe-inline'",
 		"style-src 'self' 'unsafe-inline'",
-		"img-src 'self' data: blob: https://img.clerk.com https://*.clerk.accounts.dev",
+		"img-src 'self' data: blob:",
 		"font-src 'self' data:",
 		"worker-src 'self' blob:",
 		"media-src 'self' blob:",
 		`connect-src ${connect.join(" ")}`,
-		`frame-src 'self' https://challenges.cloudflare.com ${CLERK_ORIGINS.join(" ")}`,
+		"frame-src 'self'",
 		"frame-ancestors 'none'",
 		"base-uri 'self'",
 		"form-action 'self'",

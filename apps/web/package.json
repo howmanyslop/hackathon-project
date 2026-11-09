@@ -30,7 +30,6 @@
 	},
 	"dependencies": {
 		"@base-ui/react": "catalog:frontend",
-		"@clerk/tanstack-react-start": "catalog:tanstack",
 		"@orpc/client": "catalog:orpc",
 		"@orpc/server": "catalog:orpc",
 		"@orpc/tanstack-query": "catalog:web",

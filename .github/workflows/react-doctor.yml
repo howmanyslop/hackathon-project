@@ -62,7 +62,8 @@ jobs:
         uses: millionco/react-doctor@695e46eee203a5d1855020191aa7e9c010a1250e # v2.4.0
         with:
           node-version: "26"
-          # The same projects the react-doctor hk profile scans. The action's
+          # The same project the react-doctor hk profile scans. The action's
           # default "*" would also walk the non-React workspace packages.
-          project: apps/*
+          # Takes names, paths, or a comma-separated list; globs fail.
+          project: apps/web
     timeout-minutes: 15

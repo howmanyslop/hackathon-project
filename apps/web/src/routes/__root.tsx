@@ -4,7 +4,6 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
-import { AppClerkProvider } from "../integrations/clerk/provider";
 import queryDevtools from "../integrations/tanstack-query/devtools";
 
 import appCss from "../styles.css?url";
@@ -20,19 +19,17 @@ function RootDocument({ children }: Readonly<PropsWithChildren>): ReactNode {
 				<HeadContent />
 			</head>
 			<body>
-				<AppClerkProvider>
-					{children}
-					<TanStackDevtools
-						config={{ position: "bottom-right" }}
-						plugins={[
-							{
-								name: "TanStack Router",
-								render: <TanStackRouterDevtoolsPanel />,
-							},
-							queryDevtools,
-						]}
-					/>
-				</AppClerkProvider>
+				{children}
+				<TanStackDevtools
+					config={{ position: "bottom-right" }}
+					plugins={[
+						{
+							name: "TanStack Router",
+							render: <TanStackRouterDevtoolsPanel />,
+						},
+						queryDevtools,
+					]}
+				/>
 				<Scripts />
 			</body>
 		</html>

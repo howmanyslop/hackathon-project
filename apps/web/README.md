@@ -4,8 +4,7 @@ TanStack Start on Cloudflare Workers. See the root `AGENTS.md` for commands and 
 
 ## First Run
 
-1. Copy `.env.example` to `.env` here and fill in the Clerk keys. Without them every request fails with "Missing secretKey".
-2. `node --run dev` from the repository root.
+Run `node --run dev` from the repository root.
 
 ## Database
 
