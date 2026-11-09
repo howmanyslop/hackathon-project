@@ -28,7 +28,7 @@
 		"@fontsource-variable/ibm-plex-sans": "catalog:frontend",
 		"@fontsource-variable/newsreader": "catalog:frontend",
 		"@fontsource/ibm-plex-mono": "catalog:frontend",
-		"@modelcontextprotocol/sdk": "catalog:frontend",
+		"@openrouter/sdk": "catalog:web",
 		"@orpc/client": "catalog:orpc",
 		"@orpc/server": "catalog:orpc",
 		"@orpc/tanstack-query": "catalog:web",
@@ -52,7 +52,8 @@
 		"react-dom": "catalog:frontend",
 		"tailwindcss": "catalog:frontend",
 		"tmcp": "catalog:mcp",
-		"tw-animate-css": "catalog:frontend"
+		"tw-animate-css": "catalog:frontend",
+		"type-fest": "catalog:types"
 	},
 	"devDependencies": {
 		"@chromatic-com/storybook": "catalog:storybook",
