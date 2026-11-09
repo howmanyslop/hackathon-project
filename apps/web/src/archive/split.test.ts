@@ -14,6 +14,10 @@ const TALK: ReadonlyArray<TranscriptSegment> = [
 	{ endMs: 152_000, sequence: 5, startMs: 147_000, text: "English only for now." },
 ];
 
+// "2" and "2:06" as whole tokens, so "2" is not found inside "2:06".
+const LINE_NUMBER_TWO = /(?<![\d:])2(?![\d:])/u;
+const TIME_TWO_OH_SIX = /(?<![\d:])2:06(?![\d:])/u;
+
 const OFFLINE = {
 	answer: "Yes, the phone does the speech recognition.",
 	firstSequence: 2,
@@ -114,13 +118,16 @@ describe("choosing what the model reads", () => {
 		expect(selectQaSegments(TALK, undefined)).toHaveLength(6);
 	});
 
-	// Catches the model being shown lines it cannot refer back to by number.
-	it("numbers and times each line", () => {
+	// Catches the model being shown line numbers or times that do not match
+	// the talk, such as lines counted from 0 after the Q&A mark, so the pairs
+	// it returns land on the wrong lines.
+	it("labels each line with its own number and time in the talk", () => {
 		expect.assertions(2);
 
-		const { user } = buildSplitPrompt(TALK, false);
+		const { user } = buildSplitPrompt(selectQaSegments(TALK, 128_000), true);
+		const offlineLine = user.split("\n").find((line) => line.includes("work offline?"));
 
-		expect(user).toContain("[0] (0:00) Thanks for coming.");
-		expect(user).toContain("[1] (2:00) So, any questions?");
+		expect(offlineLine).toMatch(LINE_NUMBER_TWO);
+		expect(offlineLine).toMatch(TIME_TWO_OH_SIX);
 	});
 });

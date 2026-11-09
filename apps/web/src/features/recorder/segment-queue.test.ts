@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test";
 
-import { createSegmentQueue, MAXIMUM_BATCH_SIZE, splitLongDraft } from "./segment-queue";
+import { createSegmentQueue, splitLongDraft } from "./segment-queue";
 
 import type { SegmentQueue } from "./segment-queue";
 
@@ -26,14 +26,15 @@ describe("segment queue", () => {
 		expect(getSequencesOf(queue)).toStrictEqual([0, 1, 2]);
 	});
 
-	// Catches a batch larger than the server accepts.
-	it("hands out at most fifty segments at a time", () => {
+	// Catches a batch larger than the 100 segments appendSegments accepts,
+	// which the server would refuse whole.
+	it("hands out no more segments at a time than the server accepts", () => {
 		expect.assertions(2);
 
 		const queue = createSegmentQueue();
 		fill(queue, 120);
 
-		expect(queue.peekBatch()).toHaveLength(MAXIMUM_BATCH_SIZE);
+		expect(queue.peekBatch().length).toBeLessThanOrEqual(100);
 		expect(queue.peekBatch()[0]?.sequence).toBe(0);
 	});
 

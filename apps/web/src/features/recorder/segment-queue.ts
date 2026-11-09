@@ -1,7 +1,7 @@
 import type { NewSegment } from "$archive/contract";
 
 /** The largest batch one appendSegments call carries. */
-export const MAXIMUM_BATCH_SIZE = 50;
+const MAXIMUM_BATCH_SIZE = 50;
 
 /** The longest segment text the server accepts. */
 const MAXIMUM_SEGMENT_LENGTH = 2000;
