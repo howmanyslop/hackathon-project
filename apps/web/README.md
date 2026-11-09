@@ -7,7 +7,7 @@ TanStack Start on Node, built with Nitro. See the root `AGENTS.md` for commands 
 The app needs Postgres. The quickest way is a local container:
 
 ```sh
-docker run -d --name web-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=web -p 5432:5432 postgres:18-alpine
+docker run -d --name web-postgres -e POSTGRES_HOST_AUTH_METHOD=trust -e POSTGRES_DB=web -p 127.0.0.1:5432:5432 postgres:18-alpine
 cp .env.example .env          # from the repository root; sets DATABASE_URL
 nr --filter '@web-template/web' db:migrate
 node --run dev
