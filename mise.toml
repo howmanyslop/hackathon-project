@@ -2,6 +2,10 @@
 _.file = { path = ".env" }
 _.path = ["{{config_root}}/node_modules/.bin", "{{cwd}}/node_modules/.bin"]
 
+# The team's k3s cluster, reached over Tailscale. Everyone saves the login file
+# at this path, so kubectl in this repository can't hit some other cluster.
+KUBECONFIG = "{{env.HOME}}/.kube/hackathon.yaml"
+
 HK_MISE = 1
 HK_JOBS = 2
 
@@ -25,8 +29,6 @@ direnv = "latest"
 harper-cli = "2.9.1"
 hk = { version = "2.11.1", workflow = "release.yml" }
 jactionlint = "latest"
-# The local Kubernetes cluster runs in Docker through kind, on macOS and Arch.
-kind = "latest"
 kubectl = "latest"
 ni = "latest"
 node = "26"
