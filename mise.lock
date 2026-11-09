@@ -643,6 +643,9 @@ aube = { path = ".mise/locks/ni/30.6.0", digest = "sha256:b71563dcce8f3d0b62a41a
 backend = "npm:@antfu/ni"
 specifiers = ["latest"]
 
+[tools.ni.provenance]
+repository = "github.com/antfu-collective/ni"
+
 [[tools.node]]
 version = "26.13.0"
 backend = "core:node"

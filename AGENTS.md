@@ -93,7 +93,7 @@ Imports across `src` folders use one `$` alias per top-level folder (`$component
 
 ## Deployment (`k8s/`, `apps/web/Dockerfile`)
 
-- `k8s/` is plain manifests applied with Kustomize into the `web` namespace: Postgres (StatefulSet, `local-path` volume), the app (Deployment with two replicas, Service, Traefik Ingress with no host rule). The `web-elastic` Secret is optional and comes from `.env` during `k8s:deploy`.
+- `k8s/` is plain manifests applied with Kustomize into the `web` namespace: Postgres (StatefulSet, `local-path` volume), the app (Deployment with three replicas spread across machines, a PodDisruptionBudget, Service, Traefik Ingress with no host rule). The `web-elastic` Secret is optional and comes from `.env` during `k8s:deploy`.
 - `k8s/dash0/monitoring.yaml` sits outside the Kustomization because its kind exists only after `mise run dash0:install` adds the Dash0 operator (Helm, `dash0-system` namespace). The operator instruments the app with OpenTelemetry, so don't add an OpenTelemetry SDK to `apps/web`.
 - The `radar` namespace runs Radar's cluster agent and belongs to the hackathon's Radar setup. Don't change it.
 - `apps/web/Dockerfile` builds on the host's CPU and ships a `linux/amd64` runtime with only `.output/` and `drizzle/`. Its `app-files` stage is what `k8s:deploy` scans for secrets.
