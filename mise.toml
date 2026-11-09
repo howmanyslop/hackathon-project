@@ -22,6 +22,7 @@ cargo.binstall_native = true
 # fish 4 ships a single binary on Linux; fish_indent is a builtin inside it.
 # macOS installs fish separately (Homebrew), since the release only has a .pkg.
 "github:fish-shell/fish-shell" = { version = "latest", os = ["linux"] }
+"github:skyhook-io/radar" = "latest"
 "pipx:sqlfluff" = "latest"
 betterleaks = "latest"
 bun = "latest"
