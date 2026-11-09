@@ -379,6 +379,12 @@
       "skillPath": "code/lib/claude-plugin/skills/storybook-upgrade/SKILL.md",
       "computedHash": "c327a9171dee8637df4cc62b015f4584f6b1a9dc6b49efde69d0300a6a131fe1"
     },
+    "tailscale": {
+      "source": "tailscale/tailscale-skill",
+      "sourceType": "github",
+      "skillPath": "skills/tailscale/SKILL.md",
+      "computedHash": "afc1aeb8729d5efd0ca3d9714dcfb6cea860b4ac7688d4ca6c6e8b384edf4ddd"
+    },
     "tdd": {
       "source": "mattpocock/skills",
       "sourceType": "github",

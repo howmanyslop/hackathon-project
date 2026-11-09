@@ -160,3 +160,4 @@ lerna-debug.log*
 .agents/skills/remove-animations
 .agents/skills/chief-of-staff
 .agents/skills/setup-ts-deep-modules
+.agents/skills/tailscale

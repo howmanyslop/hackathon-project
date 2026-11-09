@@ -25,6 +25,9 @@ direnv = "latest"
 harper-cli = "2.9.1"
 hk = { version = "2.11.1", workflow = "release.yml" }
 jactionlint = "latest"
+# The local Kubernetes cluster runs in Docker through kind, on macOS and Arch.
+kind = "latest"
+kubectl = "latest"
 ni = "latest"
 node = "26"
 pinact = "latest"
