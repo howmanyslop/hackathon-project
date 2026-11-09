@@ -49,6 +49,10 @@ spec:
             # Postgres 18 images keep data under /var/lib/postgresql/18.
             - name: data
               mountPath: /var/lib/postgresql
+      # The `local-path` volume lives on this machine, so the database stays on
+      # the one that is never unplugged in the failover demo.
+      nodeSelector:
+        kubernetes.io/hostname: control
   # k3s's default `local-path` storage: a folder on whichever machine runs the
   # pod. Fine for a hackathon; the data is gone if that machine is.
   volumeClaimTemplates:

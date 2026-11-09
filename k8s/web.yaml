@@ -1,4 +1,4 @@
-# The app: two copies, a Service in front of them, and an Ingress that sends
+# The app: three copies, a Service in front of them, and an Ingress that sends
 # every request reaching the cluster's Traefik on port 80 to that Service. No
 # host rule, so no cluster address is written down in this public repository.
 apiVersion: apps/v1
@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/name: web
 
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app.kubernetes.io/name: web
@@ -31,6 +31,7 @@ spec:
               value: postgres://web:$(POSTGRES_PASSWORD)@postgres:5432/web
           # `mise run k8s:deploy` replaces this tag with the commit it built.
           image: ghcr.io/howmanyslop/web:latest
+          imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 6
             httpGet:
@@ -61,14 +62,41 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
-      # Keep the two copies on different machines when possible.
+      # Replace copies on a dead machine after 15 seconds instead of 5 minutes.
+      tolerations:
+        - effect: NoExecute
+          key: node.kubernetes.io/unreachable
+          operator: Exists
+          tolerationSeconds: 15
+        - effect: NoExecute
+          key: node.kubernetes.io/not-ready
+          operator: Exists
+          tolerationSeconds: 15
+      # Never put two copies on one machine while another is free, so losing one
+      # machine leaves at least two copies running.
       topologySpreadConstraints:
         - labelSelector:
             matchLabels:
               app.kubernetes.io/name: web
           maxSkew: 1
+          # A dead machine doesn't count, so its replacement copy can start.
+          nodeTaintsPolicy: Honor
           topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: ScheduleAnyway
+          whenUnsatisfiable: DoNotSchedule
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+  name: web
+  labels:
+    app.kubernetes.io/name: web
+
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: web
 ---
 apiVersion: v1
 kind: Service
