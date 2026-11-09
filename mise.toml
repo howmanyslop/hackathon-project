@@ -208,7 +208,7 @@ apply_secret() {
 # The shared presenter code: random, made once, never printed.
 presenter_before="$(read_secret web-presenter)"
 if [[ -z "${presenter_before}" ]]; then
-	kubectl --namespace web create secret generic web-presenter --from-literal=code="$(openssl rand -hex 4)"
+	kubectl --namespace web create secret generic web-presenter --from-literal=code="$(openssl rand -hex 8)"
 	echo "==> Created a presenter code. Read it with: kubectl --namespace web get secret web-presenter --output jsonpath='{.data.code}' | base64 --decode"
 fi
 presenter_after="$(read_secret web-presenter)"
