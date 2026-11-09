@@ -5,6 +5,7 @@ export default defineConfig({
 		name: "web",
 		compatibilityDate: "2025-09-02",
 		compatibilityFlags: ["nodejs_compat"],
+		domains: ["hackathon.howmanysmall.com"],
 		// TanStack Start's handler plus security headers (src/server.ts).
 		entrypoint: "./src/server.ts",
 		env: {
@@ -27,5 +28,6 @@ export default defineConfig({
 				enabled: true,
 			},
 		},
+		workersDev: false,
 	},
 });
