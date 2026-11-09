@@ -1,0 +1,89 @@
+# HTTPS for the app through a Cloudflare Tunnel, so phones can use the
+# microphone. Two copies hold outbound connections to Cloudflare; nothing in
+# the cluster opens a port to the internet.
+#
+# The tunnel is managed in the Cloudflare dashboard, which routes the public
+# hostname to http://web.web.svc.cluster.local:80, so no config file is needed
+# here. Its token lives in the `web-tunnel` Secret, which `mise run k8s:deploy`
+# creates from CLOUDFLARE_TUNNEL_TOKEN.
+#
+# Not in kustomization.yaml: `k8s:deploy` applies either this file or
+# cloudflared-quick.yaml, depending on whether a tunnel token exists.
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: cloudflared
+  labels:
+    app.kubernetes.io/name: cloudflared
+  namespace: web
+
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cloudflared
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cloudflared
+    spec:
+      # cloudflared never calls the Kubernetes API.
+      automountServiceAccountToken: false
+      containers:
+        - name: cloudflared
+          args:
+            - tunnel
+            - --no-autoupdate
+            - --metrics
+            - 0.0.0.0:2000
+            - run
+          env:
+            - name: TUNNEL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: web-tunnel
+                  key: token
+          image: cloudflare/cloudflared:2026.10.7
+          imagePullPolicy: IfNotPresent
+          # /ready answers 200 once the copy has a connection to Cloudflare.
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ready
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          ports:
+            - name: metrics
+              containerPort: 2000
+          resources:
+            limits:
+              cpu: 500m
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      # The image's own non-root user.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      # Keep the two copies on different machines when possible.
+      topologySpreadConstraints:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: cloudflared
+          maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+      volumes:
+        - name: tmp
+          emptyDir: {}
