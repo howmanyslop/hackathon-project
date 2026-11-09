@@ -1,0 +1,15 @@
+{
+	"configuration": {
+		"params": {
+			"question": {
+				"description": "What to look for, in plain words.",
+				"type": "string"
+			}
+		},
+		"query": "FROM asked-archive METADATA _score | WHERE kind == \"pair\" AND MATCH(content, ?question) | SORT _score DESC | LIMIT 6 | EVAL seconds = (startMs / 1000) % 60, time = CONCAT(TO_STRING(startMs / 60000), \":\", RIGHT(CONCAT(\"0\", TO_STRING(seconds)), 2)) | KEEP sessionId, sessionTitle, speaker, startMs, time, question, answer"
+	},
+	"description": "Searches the questions attendees asked during conference talks and the answers the speakers gave, by meaning. Each row has the session title, the speaker, the time into the talk (the time column, already formatted), the question, and the answer. Use it first for any question about what was asked or answered.",
+	"id": "asked.find_answered_questions",
+	"tags": ["asked-and-answered"],
+	"type": "esql"
+}

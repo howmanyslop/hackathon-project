@@ -1,0 +1,10 @@
+{
+	"configuration": {
+		"params": {},
+		"query": "FROM asked-archive | WHERE kind == \"pair\" | STATS questions = COUNT(*) BY sessionId, sessionTitle | SORT questions DESC | LIMIT 100"
+	},
+	"description": "Counts the answered questions in each conference talk, most asked first. Use it for questions about which talks drew the most questions.",
+	"id": "asked.count_questions_by_session",
+	"tags": ["asked-and-answered"],
+	"type": "esql"
+}
