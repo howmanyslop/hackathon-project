@@ -89,10 +89,13 @@ Imports across `src` folders use one `$` alias per top-level folder (`$component
 - `routes/healthz.ts` answers Kubernetes' readiness and liveness checks.
 - All server calls go through one oRPC router (`orpc/router/index.ts`), mounted at `routes/api.rpc.$.ts`. It accepts POST only and checks CSRF (`server/csrf.ts`). `orpc/client.ts` calls the router in-process during SSR and over `/api/rpc` in the browser.
 - `db/` holds the Drizzle schema and the Postgres client (`getDatabase()`, from `DATABASE_URL`). Migrations go in `drizzle/`.
+- `search/` is optional semantic search on Elastic Cloud Serverless (`ELASTICSEARCH_URL`, `ELASTICSEARCH_API_KEY`). After migrations, `server.ts` sets up the Jina inference endpoint and the todo index without blocking requests. Postgres is the source of truth; a search failure never fails a write.
 
 ## Deployment (`k8s/`, `apps/web/Dockerfile`)
 
-- `k8s/` is plain manifests applied with Kustomize into the `web` namespace: Postgres (StatefulSet, `local-path` volume), the app (Deployment with two replicas, Service, Traefik Ingress with no host rule).
+- `k8s/` is plain manifests applied with Kustomize into the `web` namespace: Postgres (StatefulSet, `local-path` volume), the app (Deployment with two replicas, Service, Traefik Ingress with no host rule). The `web-elastic` Secret is optional and comes from `.env` during `k8s:deploy`.
+- `k8s/dash0/monitoring.yaml` sits outside the Kustomization because its kind exists only after `mise run dash0:install` adds the Dash0 operator (Helm, `dash0-system` namespace). The operator instruments the app with OpenTelemetry, so don't add an OpenTelemetry SDK to `apps/web`.
+- The `radar` namespace runs Radar's cluster agent and belongs to the hackathon's Radar setup. Don't change it.
 - `apps/web/Dockerfile` builds on the host's CPU and ships a `linux/amd64` runtime with only `.output/` and `drizzle/`. Its `app-files` stage is what `k8s:deploy` scans for secrets.
 - `integrations/` wires TanStack Query into the router.
 - UI uses Tailwind 4 and shadcn on Base UI. React Compiler handles memoization, so `useMemo`, `useCallback`, and `memo` are banned, and so is `useEffect` by default.

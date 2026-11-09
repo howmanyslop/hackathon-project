@@ -1,0 +1,22 @@
+# Turns on Dash0 for the `web` namespace: OpenTelemetry tracing for the Node
+# app (added by the operator when pods start), pod logs, and metrics. Nothing
+# outside `web` is monitored, so other tenants' namespaces stay untouched.
+#
+# It is not in kustomization.yaml because the cluster only knows this kind
+# once the Dash0 operator is installed. `mise run dash0:install` applies it,
+# and `mise run k8s:deploy` re-applies it whenever the operator is present.
+apiVersion: operator.dash0.com/v1beta1
+kind: Dash0Monitoring
+
+metadata:
+  name: dash0-monitoring-resource
+  namespace: web
+
+# The defaults instrument every workload here and collect its logs.
+spec:
+  filter:
+    traces:
+      span:
+        # Kubernetes calls /healthz every few seconds on each pod.
+        - 'attributes["url.path"] == "/healthz"'
+        - 'attributes["http.target"] == "/healthz"'

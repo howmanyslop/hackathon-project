@@ -29,6 +29,21 @@ spec:
                   key: password
             - name: DATABASE_URL
               value: postgres://web:$(POSTGRES_PASSWORD)@postgres:5432/web
+            # Elastic Cloud Serverless, for semantic search. The `web-elastic`
+            # Secret is optional: `k8s:deploy` creates it only when .env has
+            # both values, and the app runs without search until then.
+            - name: ELASTICSEARCH_URL
+              valueFrom:
+                secretKeyRef:
+                  name: web-elastic
+                  key: url
+                  optional: true
+            - name: ELASTICSEARCH_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: web-elastic
+                  key: api-key
+                  optional: true
           # `mise run k8s:deploy` replaces this tag with the commit it built.
           image: ghcr.io/howmanyslop/web:latest
           livenessProbe:

@@ -2,25 +2,35 @@ import { env } from "node:process";
 import { Client } from "@elastic/elasticsearch";
 import { type } from "arktype";
 
-const parseSearchEnvironment = type({
-	"ELASTICSEARCH_API_KEY?": "string > 0",
-	"ELASTICSEARCH_URL?": "string.url",
-}).readonly();
-
 const parseConfiguredSearchEnvironment = type({
 	ELASTICSEARCH_API_KEY: "string > 0",
 	ELASTICSEARCH_URL: "string.url",
 }).readonly();
 
+/**
+ * Reads an optional environment variable. `.env.example` lists the search
+ * variables with blank values, so blank means "not set" too.
+ *
+ * @param name - The variable's name.
+ * @returns Its value, or `undefined` when it is missing or blank.
+ */
+export function readOptionalSetting(name: string): string | undefined {
+	const value = env[name];
+	return value === undefined || value.length === 0 ? undefined : value;
+}
+
 function createSearchClient(): Client | undefined {
-	const environment = parseSearchEnvironment.assert(env);
-	if (environment.ELASTICSEARCH_URL === undefined && environment.ELASTICSEARCH_API_KEY === undefined) {
-		return undefined;
-	}
+	const url = readOptionalSetting("ELASTICSEARCH_URL");
+	const apiKey = readOptionalSetting("ELASTICSEARCH_API_KEY");
+	if (url === undefined && apiKey === undefined) return undefined;
 
 	// Setting only one of the two is a mistake, so say so instead of quietly
 	// running without search.
-	const { ELASTICSEARCH_API_KEY, ELASTICSEARCH_URL } = parseConfiguredSearchEnvironment.assert(environment);
+	const { ELASTICSEARCH_API_KEY, ELASTICSEARCH_URL } = parseConfiguredSearchEnvironment.assert({
+		ELASTICSEARCH_API_KEY: apiKey,
+		ELASTICSEARCH_URL: url,
+	});
+
 	return new Client({
 		auth: { apiKey: ELASTICSEARCH_API_KEY },
 		node: ELASTICSEARCH_URL,
