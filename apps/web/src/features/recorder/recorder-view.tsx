@@ -1,7 +1,7 @@
 import { SectionRow } from "$components/section-row";
 
 import { LiveScreen } from "./live-screen";
-import { RECORDER_NOTE } from "./recording-notice";
+import { NO_SPEECH_NOTICE, RECORDER_NOTE } from "./recording-notice";
 import { SavedScreen } from "./saved-screen";
 import { StartForm } from "./start-form";
 
@@ -28,11 +28,7 @@ export function RecorderView({ recorder }: Readonly<RecorderViewProperties>): Re
 			{recorder.isSpeechAvailable ? (
 				<StartForm recorder={recorder} />
 			) : (
-				<p className="caption">
-					{
-						"This browser cannot turn speech into text, so it cannot record a talk. Safari on iPhone and Chrome on Android both can, so open this page in one of those."
-					}
-				</p>
+				<p className="caption">{NO_SPEECH_NOTICE}</p>
 			)}
 		</SectionRow>
 	);

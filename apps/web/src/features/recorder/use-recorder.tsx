@@ -3,15 +3,16 @@ import { ORPCError } from "@orpc/client";
 
 import { orpc } from "$orpc/client";
 
-import { getSpeechRecognitionConstructor } from "./browser-speech-engine";
 import { createSegmentQueue, splitLongDraft } from "./segment-queue";
 import { createSegmentSender } from "./segment-sender";
-import { createSpeechEngine } from "./speech-engine";
+import { createSpeechEngine, getSpeechEngineKind } from "./speech-engine";
 import { createScreenWakeLock } from "./wake-lock";
+
+import type { RefObject } from "react";
 
 import type { SegmentDraft, SegmentQueue } from "./segment-queue";
 import type { SegmentSender, SendBatchAsync } from "./segment-sender";
-import type { SpeechEngine } from "./speech-engine";
+import type { SpeechEngine, SpeechEngineKind, SpeechEngineStatus } from "./speech-engine";
 import type { ScreenWakeLock } from "./wake-lock";
 
 /**
@@ -40,11 +41,15 @@ export interface Recorder {
 	/** The form's fields. They live here, so a failed start keeps them. */
 	readonly details: RecordingDetails;
 	readonly elapsedMs: number;
+	/** Which engine this browser runs, or undefined when it has none. */
+	readonly engineKind: SpeechEngineKind | undefined;
 	readonly errorMessage: string | undefined;
 	readonly interimText: string;
 	readonly isSpeechAvailable: boolean;
 	readonly lines: ReadonlyArray<TranscriptLine>;
 	readonly markQuestions: () => void;
+	/** From 0 to 1 while the speech model loads; otherwise undefined. */
+	readonly modelProgress: number | undefined;
 	readonly pairCount: number | undefined;
 	readonly phase: RecorderPhase;
 	readonly presenterCode: string;
@@ -77,6 +82,47 @@ function storeCode(code: string): void {
 }
 
 const EMPTY_DETAILS: RecordingDetails = { recordingUrl: "", speaker: "", title: "" };
+
+/** One recording's machinery, made in the Start tap. */
+interface Machinery {
+	engine: SpeechEngine | undefined;
+	queue: SegmentQueue | undefined;
+	sender: SegmentSender | undefined;
+	sessionId: number | undefined;
+	startedAt: number;
+	wakeLock: ScreenWakeLock | undefined;
+}
+
+function createMachinery(): Machinery {
+	return {
+		engine: undefined,
+		queue: undefined,
+		sender: undefined,
+		sessionId: undefined,
+		startedAt: 0,
+		wakeLock: undefined,
+	};
+}
+
+/**
+ * The machinery, made on first use. Call it from handlers and effects, not
+ * while rendering.
+ *
+ * @param machineryRef - The ref that holds it.
+ * @returns The same object for the life of the component.
+ */
+function getMachinery(machineryRef: RefObject<Machinery | undefined>): Machinery {
+	machineryRef.current ??= createMachinery();
+	return machineryRef.current;
+}
+
+interface StartInput {
+	readonly presenterCode: string;
+	readonly recordingUrl?: string;
+	readonly speaker: string;
+	readonly title: string;
+}
+
 const UNSENT_LEFT =
 	"Some sentences were not sent yet, so the talk is not saved. Check the connection, then tap Stop and save again.";
 
@@ -103,6 +149,26 @@ function createBatchSender(presenterCode: string, sessionId: number): SendBatchA
 	};
 }
 
+function getModelProgress(status: SpeechEngineStatus): number | undefined {
+	return status.kind === "loading-model" ? status.fraction : undefined;
+}
+
+/**
+ * The microphone may have been refused while the session was being opened.
+ *
+ * @param current - The phase when the failure arrived.
+ * @returns The talk screen if it was still starting, otherwise unchanged.
+ */
+function leaveStarting(current: RecorderPhase): RecorderPhase {
+	return current === "starting" ? "talk" : current;
+}
+
+function getStartInput(presenterCode: string, details: RecordingDetails): StartInput {
+	const recordingUrl = details.recordingUrl.trim();
+	const required = { presenterCode, speaker: details.speaker.trim(), title: details.title.trim() };
+	return recordingUrl.length > 0 ? { ...required, recordingUrl } : required;
+}
+
 function ignoreFailure(): void {
 	// Failures are already shown, or the segments stay queued for next time.
 }
@@ -126,16 +192,12 @@ export function useRecorder(): Recorder {
 	const [pairCount, setPairCount] = useState<number | undefined>();
 	const [errorMessage, setErrorMessage] = useState<string | undefined>();
 	const [details, setDetails] = useState<RecordingDetails>(EMPTY_DETAILS);
+	const [modelProgress, setModelProgress] = useState<number | undefined>();
 
-	// One recording's machinery, made in the Start tap.
-	const engineRef = useRef<SpeechEngine | undefined>(undefined);
-	const queueRef = useRef<SegmentQueue | undefined>(undefined);
-	const senderRef = useRef<SegmentSender | undefined>(undefined);
-	const wakeLockRef = useRef<ScreenWakeLock | undefined>(undefined);
-	const startedAtRef = useRef(0);
-	const sessionIdRef = useRef<number | undefined>(undefined);
+	const machineryRef = useRef<Machinery | undefined>(undefined);
 
-	const isSpeechAvailable = getSpeechRecognitionConstructor() !== undefined;
+	const engineKind = getSpeechEngineKind();
+	const isSpeechAvailable = engineKind !== undefined;
 	const isRecording = phase === "talk" || phase === "qa";
 
 	useEffect(
@@ -143,11 +205,11 @@ export function useRecorder(): Recorder {
 			if (!isRecording) return undefined;
 
 			function updateClock(): void {
-				setElapsedMs(performance.now() - startedAtRef.current);
+				setElapsedMs(performance.now() - getMachinery(machineryRef).startedAt);
 			}
 
 			function send(): void {
-				senderRef.current?.flushAsync().catch(ignoreFailure);
+				getMachinery(machineryRef).sender?.flushAsync().catch(ignoreFailure);
 			}
 
 			const clockTimer = window.setInterval(updateClock, CLOCK_INTERVAL_MS);
@@ -166,7 +228,7 @@ export function useRecorder(): Recorder {
 	}
 
 	function handleSegment(draft: SegmentDraft): void {
-		const queue = queueRef.current;
+		const { queue } = getMachinery(machineryRef);
 		if (queue === undefined) return;
 
 		for (const piece of splitLongDraft(draft)) {
@@ -182,12 +244,17 @@ export function useRecorder(): Recorder {
 	 * @returns Resolves once the recognizer has handed over its last sentence.
 	 */
 	async function releaseDeviceAsync(): Promise<void> {
-		const engine = engineRef.current;
-		engineRef.current = undefined;
+		const { engine } = getMachinery(machineryRef);
+		getMachinery(machineryRef).engine = undefined;
 		await engine?.stopAsync();
-		wakeLockRef.current?.release();
-		wakeLockRef.current = undefined;
+		getMachinery(machineryRef).wakeLock?.release();
+		getMachinery(machineryRef).wakeLock = undefined;
 		setInterimText("");
+		setModelProgress(undefined);
+	}
+
+	function handleStatus(status: SpeechEngineStatus): void {
+		setModelProgress(getModelProgress(status));
 	}
 
 	function handleSpeechError(message: string): void {
@@ -204,28 +271,26 @@ export function useRecorder(): Recorder {
 		const wakeLock = createScreenWakeLock();
 		wakeLock.acquire();
 		const queue = createSegmentQueue();
-		engine.start(handleSegment, setInterimText, handleSpeechError);
-		engineRef.current = engine;
-		wakeLockRef.current = wakeLock;
-		queueRef.current = queue;
-		startedAtRef.current = performance.now();
+		setModelProgress(undefined);
+		engine.start(handleSegment, setInterimText, handleSpeechError, handleStatus);
+		getMachinery(machineryRef).engine = engine;
+		getMachinery(machineryRef).wakeLock = wakeLock;
+		getMachinery(machineryRef).queue = queue;
+		getMachinery(machineryRef).startedAt = performance.now();
 		setLines([]);
 		setErrorMessage(undefined);
 		setPhase("starting");
 
 		const code = presenterCode;
-		const recordingUrl = details.recordingUrl.trim();
-		const required = { presenterCode: code, speaker: details.speaker.trim(), title: details.title.trim() };
-		const input = recordingUrl.length > 0 ? { ...required, recordingUrl } : required;
+		const input = getStartInput(code, details);
 
 		async function openSessionAsync(): Promise<void> {
 			try {
 				const { id } = await orpc.startSession.call(input);
-				senderRef.current = createSegmentSender(queue, createBatchSender(code, id));
-				sessionIdRef.current = id;
+				getMachinery(machineryRef).sender = createSegmentSender(queue, createBatchSender(code, id));
+				getMachinery(machineryRef).sessionId = id;
 				setSessionId(id);
-				// The microphone may have been refused while this call was out.
-				setPhase((current) => (current === "starting" ? "talk" : current));
+				setPhase(leaveStarting);
 			} catch (error) {
 				releaseDeviceAsync().catch(ignoreFailure);
 				setErrorMessage(describeFailure(error));
@@ -237,10 +302,10 @@ export function useRecorder(): Recorder {
 	}
 
 	function markQuestions(): void {
-		const id = sessionIdRef.current;
+		const id = getMachinery(machineryRef).sessionId;
 		if (id === undefined || phase !== "talk") return;
 
-		const offsetMs = Math.round(performance.now() - startedAtRef.current);
+		const offsetMs = Math.round(performance.now() - getMachinery(machineryRef).startedAt);
 		setQaStartMs(offsetMs);
 		setPhase("qa");
 
@@ -266,9 +331,9 @@ export function useRecorder(): Recorder {
 	async function saveAsync(id: number): Promise<void> {
 		try {
 			await releaseDeviceAsync();
-			await senderRef.current?.drainAsync(STOP_FLUSH_ATTEMPTS);
+			await getMachinery(machineryRef).sender?.drainAsync(STOP_FLUSH_ATTEMPTS);
 
-			if ((queueRef.current?.size() ?? 0) > 0) {
+			if ((getMachinery(machineryRef).queue?.size() ?? 0) > 0) {
 				setErrorMessage(UNSENT_LEFT);
 				setPhase("stopped");
 				return;
@@ -284,7 +349,7 @@ export function useRecorder(): Recorder {
 	}
 
 	function stop(): void {
-		const id = sessionIdRef.current;
+		const id = getMachinery(machineryRef).sessionId;
 		if (id === undefined) {
 			releaseDeviceAsync().catch(ignoreFailure);
 			setPhase("idle");
@@ -300,11 +365,13 @@ export function useRecorder(): Recorder {
 		changePresenterCode,
 		details,
 		elapsedMs,
+		engineKind,
 		errorMessage,
 		interimText,
 		isSpeechAvailable,
 		lines,
 		markQuestions,
+		modelProgress,
 		pairCount,
 		phase,
 		presenterCode,
