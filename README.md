@@ -4,6 +4,16 @@ The Q&A at the end of a talk is often the best part, and it's gone the moment th
 
 Only text reaches the server. The phone's browser does the speech-to-text (Chrome uses Google's speech service for it), and no audio or video is stored. A browser with no speech-to-text of its own downloads a small model from the app and runs it on the phone instead; before a deploy from a fresh clone, `nr --filter '@web-template/web' speech-model:fetch` puts that model in place.
 
+## The Cluster
+
+The app runs on a small physical k3s cluster: four mini PCs stacked together and wrapped in LED string lights, with a gigabit switch on top. One machine is the control node and gateway; the other three are workers.
+
+| ![The four-machine stack from the front, wrapped in green lights, with the network switch on top.](docs/images/cluster-stack.jpg) | ![The stack from above with cables and power banks around it.](docs/images/cluster-cables.jpg) |
+| :---: | :---: |
+| **The stack.** Four mini PCs, all lights green. | **The cabling.** Power and network, all on one desk. |
+| ![One machine's light strip turned red for a severe, active issue on that node reported by Radar, while the others stay green.](docs/images/cluster-error.jpg) | ![The lights blinking, with one strip showing red.](docs/images/cluster-blink.gif) |
+| **A single error.** One strip turns red while the rest stay green. The red strip is a severe, active issue for that node, pulled from the Radar API. | **Blinking.** The lights in motion, with the same red strip: a severe, active issue for that node, from Radar. |
+
 ## Pages
 
 | Route            | What it shows                                                                                   |
