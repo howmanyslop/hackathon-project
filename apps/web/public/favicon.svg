@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+	<title>Asked &amp; Answered</title>
+	<rect width="32" height="32" fill="#fafaf9"/>
+	<path d="M11 11.5a5 5 0 1 1 7.2 4.5c-1.4.7-2.2 1.7-2.2 3.2V21" fill="none" stroke="#1a1c20" stroke-width="3"/>
+	<rect x="14.5" y="23.5" width="3" height="3" fill="#1a1c20"/>
+</svg>

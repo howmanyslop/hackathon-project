@@ -8,6 +8,34 @@
       "when": 1794249468152,
       "tag": "0000_create_todos",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794259288834,
+      "tag": "0001_drop-todos",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794259289176,
+      "tag": "0002_create-archive",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794261086138,
+      "tag": "0003_add-ask-log",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794262838068,
+      "tag": "0004_add-question-log",
+      "breakpoints": true
     }
   ]
 }

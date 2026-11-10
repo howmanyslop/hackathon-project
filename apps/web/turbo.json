@@ -5,6 +5,19 @@
 		"build": {
 			"env": ["VITE_*"],
 			"outputs": ["dist/**", ".output/**"]
+		},
+		"dev": {
+			"cache": false,
+			"passThroughEnv": [
+				"ASK_*",
+				"DATABASE_URL",
+				"ELASTIC_*",
+				"ELASTICSEARCH_*",
+				"KIBANA_URL",
+				"OPENROUTER_*",
+				"PRESENTER_CODE"
+			],
+			"persistent": true
 		}
 	}
 }

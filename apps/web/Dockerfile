@@ -16,8 +16,14 @@ RUN npm install --global "$(node --print 'require("./package.json").packageManag
 COPY . .
 # Install and build in one step: pnpm's global virtual store links
 # node_modules into the cache mount, which only exists during this step.
+# The speech model is git-ignored. Files already in the build context are
+# checked and kept; missing ones are downloaded and checked against their
+# SHA-256. A failed download must not block a deploy: the app then runs
+# without the on-device fallback, and says so on phones that need it.
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm-store \
 	pnpm install --frozen-lockfile --store-dir /pnpm-store --filter "@web-template/web..." \
+	&& (pnpm --filter @web-template/web run speech-model:fetch \
+		|| echo "WARNING: the speech model is missing, so this image has no on-device fallback") \
 	&& pnpm --filter @web-template/web run build
 
 # Only the files this repository adds to the image. `mise run k8s:deploy`

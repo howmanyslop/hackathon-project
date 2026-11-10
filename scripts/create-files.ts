@@ -1,14 +1,23 @@
 #!/usr/bin/env bun
 
+import { access, mkdir, writeFile } from "node:fs/promises";
 import nodePath from "node:path";
 import { argv } from "node:process";
 import { Command } from "@cliffy/command";
-import { file, write } from "bun";
 
 import { createLogger } from "$script-logging/logger";
 import { toKebabCase } from "$script-utilities/casing-utilities";
 
 const log = createLogger("create-files");
+
+async function existsAsync(filePath: string): Promise<boolean> {
+	try {
+		await access(filePath);
+		return true;
+	} catch {
+		return false;
+	}
+}
 
 const command = new Command()
 	.name("create-files")
@@ -26,13 +35,13 @@ const command = new Command()
 
 		await Promise.all(
 			correctedFilePaths.map(async (filePath) => {
-				const bunFile = file(filePath);
-				if (await bunFile.exists()) {
+				if (await existsAsync(filePath)) {
 					log.info(`File already exists: ${filePath}`);
 					return;
 				}
 
-				await write(bunFile, "");
+				await mkdir(nodePath.dirname(filePath), { recursive: true });
+				await writeFile(filePath, "");
 				log.info(`Created file: ${filePath}`);
 			}),
 		);

@@ -112,6 +112,21 @@ kubectl apply --filename k8s/dash0/monitoring.yaml
 echo "==> Done. Traces, logs, and metrics show up in https://app.dash0.com within a few minutes."
 '''
 
+[tasks."elastic:setup"]
+description = "Creates or updates the Elastic indices, Agent Builder tools and agent, and the digest workflow."
+usage = """
+flag "--run-workflow" help="Run the digest workflow once afterwards"
+"""
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${usage_run_workflow:-}" == "true" ]]; then
+	bun run scripts/set-up-elastic.ts --run-workflow
+else
+	bun run scripts/set-up-elastic.ts
+fi
+'''
+
 [tasks."k8s:db"]
 description = "Connects localhost:5432 to the cluster's Postgres until you press Ctrl+C."
 run = '''
@@ -170,21 +185,72 @@ if ! kubectl --namespace web get secret web-postgres > /dev/null 2>&1; then
 	kubectl --namespace web create secret generic web-postgres --from-literal=password="$(openssl rand -hex 24)"
 fi
 
-# Search is optional. With both Elastic values in .env, copy them into the
-# `web-elastic` Secret; the values go through files, not the command line.
-elastic_before="$(kubectl --namespace web get secret web-elastic --output jsonpath='{.data}' 2> /dev/null || true)"
-if [[ -n "${ELASTICSEARCH_URL:-}" && -n "${ELASTICSEARCH_API_KEY:-}" ]]; then
-	kubectl --namespace web create secret generic web-elastic \
-		--from-file=url=<(printf '%s' "${ELASTICSEARCH_URL}") \
-		--from-file=api-key=<(printf '%s' "${ELASTICSEARCH_API_KEY}") \
+# Prints a Secret's data, or nothing when it doesn't exist, to tell whether
+# this run changed it.
+read_secret() {
+	kubectl --namespace web get secret "$1" --output jsonpath='{.data}' 2> /dev/null || true
+}
+
+# Secret values go through files in a private folder, never the command line:
+# `put_secret_value <secret> <key> <value>` writes one, `apply_secret
+# <secret>` creates or updates the Secret from every value written for it.
+secret_values="$(mktemp -d)"
+trap 'rm -rf "${scan}" "${secret_values}"' EXIT
+put_secret_value() {
+	mkdir -p "${secret_values}/$1"
+	printf '%s' "$3" > "${secret_values}/$1/$2"
+}
+apply_secret() {
+	kubectl --namespace web create secret generic "$1" --from-file="${secret_values}/$1" \
 		--dry-run=client --output yaml | kubectl apply --filename - > /dev/null
+}
+
+# The shared presenter code: random, made once, never printed.
+presenter_before="$(read_secret web-presenter)"
+if [[ -z "${presenter_before}" ]]; then
+	kubectl --namespace web create secret generic web-presenter --from-literal=code="$(openssl rand -hex 8)"
+	echo "==> Created a presenter code. Read it with: kubectl --namespace web get secret web-presenter --output jsonpath='{.data.code}' | base64 --decode"
+fi
+presenter_after="$(read_secret web-presenter)"
+
+# Search and the Ask box are optional. With both Elastic values in .env, copy
+# them (and KIBANA_URL, when set) into the `web-elastic` Secret.
+elastic_before="$(read_secret web-elastic)"
+if [[ -n "${ELASTICSEARCH_URL:-}" && -n "${ELASTICSEARCH_API_KEY:-}" ]]; then
+	put_secret_value web-elastic url "${ELASTICSEARCH_URL}"
+	put_secret_value web-elastic api-key "${ELASTICSEARCH_API_KEY}"
+	if [[ -n "${KIBANA_URL:-}" ]]; then
+		put_secret_value web-elastic kibana-url "${KIBANA_URL}"
+	fi
+	apply_secret web-elastic
 elif [[ -n "${ELASTICSEARCH_URL:-}${ELASTICSEARCH_API_KEY:-}" ]]; then
 	echo "Set both ELASTICSEARCH_URL and ELASTICSEARCH_API_KEY in .env, or neither." >&2
 	exit 1
 elif [[ -z "${elastic_before}" ]]; then
 	echo "==> No Elastic values in .env; deploying without search"
 fi
-elastic_after="$(kubectl --namespace web get secret web-elastic --output jsonpath='{.data}' 2> /dev/null || true)"
+elastic_after="$(read_secret web-elastic)"
+
+# OpenRouter, the fallback model for splitting talks into questions and
+# answers. Optional: only when OPENROUTER_API_KEY is set.
+llm_before="$(read_secret web-llm)"
+if [[ -n "${OPENROUTER_API_KEY:-}" ]]; then
+	put_secret_value web-llm api-key "${OPENROUTER_API_KEY}"
+	if [[ -n "${OPENROUTER_MODEL:-}" ]]; then
+		put_secret_value web-llm model "${OPENROUTER_MODEL}"
+	fi
+	apply_secret web-llm
+fi
+llm_after="$(read_secret web-llm)"
+
+# The Cloudflare Tunnel token, from the tunnel's page in the Cloudflare
+# dashboard. Without one, a temporary trycloudflare.com address is used.
+tunnel_before="$(read_secret web-tunnel)"
+if [[ -n "${CLOUDFLARE_TUNNEL_TOKEN:-}" ]]; then
+	put_secret_value web-tunnel token "${CLOUDFLARE_TUNNEL_TOKEN}"
+	apply_secret web-tunnel
+fi
+tunnel_after="$(read_secret web-tunnel)"
 
 kubectl kustomize k8s | sed "s|${image}:latest|${image}:${tag}|" | kubectl apply --filename -
 
@@ -194,8 +260,8 @@ if kubectl get crd dash0monitorings.operator.dash0.com > /dev/null 2>&1; then
 fi
 
 # Pods read Secrets only when they start, so restart them if the keys changed.
-if [[ "${elastic_before}" != "${elastic_after}" ]]; then
-	echo "==> Elastic values changed; restarting the app to pick them up"
+if [[ "${elastic_before}" != "${elastic_after}" || "${presenter_before}" != "${presenter_after}" || "${llm_before}" != "${llm_after}" ]]; then
+	echo "==> Secrets changed; restarting the app to pick them up"
 	kubectl --namespace web rollout restart deployment/web
 fi
 
@@ -216,6 +282,35 @@ kubectl --namespace web rollout status deployment/web --timeout=5s
 # The address comes from the local kubeconfig, never from this repository.
 host="$(kubectl config view --minify --output jsonpath='{.clusters[0].cluster.server}' | sed -E 's|^https?://||; s|:[0-9]+$||')"
 echo "==> Deployed ${tag}: http://${host}"
+
+# HTTPS through a Cloudflare Tunnel: the named tunnel when a token exists,
+# otherwise a temporary trycloudflare.com address.
+if [[ -n "${tunnel_after}" ]]; then
+	echo "==> Starting the Cloudflare Tunnel"
+	kubectl apply --filename k8s/cloudflared.yaml
+	if [[ -n "${tunnel_before}" && "${tunnel_before}" != "${tunnel_after}" ]]; then
+		kubectl --namespace web rollout restart deployment/cloudflared
+	fi
+	kubectl --namespace web rollout status deployment/cloudflared --timeout=120s
+	echo "==> HTTPS: the hostname routed to this tunnel in the Cloudflare dashboard"
+else
+	echo "==> No CLOUDFLARE_TUNNEL_TOKEN; starting a temporary trycloudflare.com tunnel"
+	kubectl apply --filename k8s/cloudflared-quick.yaml
+	kubectl --namespace web rollout status deployment/cloudflared --timeout=120s
+	address=""
+	for _ in $(seq 1 30); do
+		address="$(kubectl --namespace web logs deployment/cloudflared 2> /dev/null | grep -o -E 'https://[a-z0-9-]+\.trycloudflare\.com' | tail -n 1 || true)"
+		if [[ -n "${address}" ]]; then
+			break
+		fi
+		sleep 2
+	done
+	if [[ -n "${address}" ]]; then
+		echo "==> HTTPS: ${address} (changes whenever the cloudflared pod restarts)"
+	else
+		echo "==> No trycloudflare.com address yet; see: kubectl --namespace web logs deployment/cloudflared" >&2
+	fi
+fi
 '''
 
 [tasks."k8s:down"]
@@ -223,7 +318,7 @@ description = "Deletes the app and its database from the cluster, after asking."
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
-read -r -p "Delete the web namespace, including every todo in the database? Type 'delete' to confirm: " answer
+read -r -p "Delete the web namespace, including every talk in the database? Type 'delete' to confirm: " answer
 if [[ "${answer}" != "delete" ]]; then
 	echo "Nothing deleted."
 	exit 0
@@ -254,6 +349,30 @@ arg <message> {
 run = """
 git commit --signoff --message "${usage_message?}"
 """
+
+[tasks.dev]
+description = "Runs every app's dev server against the cluster's Postgres, forwarding it first."
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+password="$(kubectl --namespace web get secret web-postgres --output jsonpath='{.data.password}' | base64 --decode)"
+code="$(kubectl --namespace web get secret web-presenter --output jsonpath='{.data.code}' | base64 --decode)"
+
+# The forward lives as long as the dev server and stops with it.
+kubectl --namespace web port-forward service/postgres 5432:5432 >/dev/null &
+forward=$!
+trap 'kill "${forward}" 2>/dev/null || true' EXIT
+sleep 2
+if ! kill -0 "${forward}" 2>/dev/null; then
+	echo "Couldn't forward the cluster's Postgres to localhost:5432. Is something else on that port?" >&2
+	exit 1
+fi
+
+export DATABASE_URL="postgres://web:${password}@localhost:5432/web"
+# The cluster's presenter code, unless .env or the shell sets another.
+export PRESENTER_CODE="${PRESENTER_CODE:-${code}}"
+node --run dev
+'''
 
 [tasks.init]
 description = "Turns a copy of this template into a new project (rename, fresh git, install)."
@@ -294,6 +413,23 @@ case "${usage_type?}" in
 		nlx oxlint-config-inspector
 		;;
 esac
+'''
+
+[tasks.seed]
+description = "Records the sample talks in apps/web/seed/ through the app's own procedures. Safe to run twice."
+usage = """
+arg <base-url> {
+	help "The app's address, such as https://asked.howmanysmall.com or http://localhost:3000"
+}
+"""
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ -z "${PRESENTER_CODE:-}" ]]; then
+	PRESENTER_CODE="$(kubectl --namespace web get secret web-presenter --output jsonpath='{.data.code}' | base64 --decode)"
+fi
+export PRESENTER_CODE
+node apps/web/scripts/seed-archive.ts "${usage_base_url?}"
 '''
 
 [tasks.sync]

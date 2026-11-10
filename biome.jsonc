@@ -450,7 +450,7 @@
 			}
 		},
 		{
-			"includes": ["scripts/**/*.{ts,tsx}", ".claude/hooks/**/*.ts"],
+			"includes": [".claude/hooks/**/*.ts"],
 			"javascript": { "globals": ["Bun"] },
 			"linter": {
 				"rules": {

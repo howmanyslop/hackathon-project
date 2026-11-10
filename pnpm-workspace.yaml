@@ -88,6 +88,7 @@ catalogs:
     typebox: 1.4.4
   build:
     "@arethetypeswrong/core": 0.18.5
+    oxc-transform-react: 0.157.0
     publint: 0.3.25
   commitlint:
     "@commitlint/cli": 21.2.4
@@ -101,8 +102,12 @@ catalogs:
     pg: 8.23.1
   frontend:
     "@base-ui/react": 1.9.0
+    "@fontsource-variable/ibm-plex-sans": 5.3.0
+    "@fontsource-variable/newsreader": 5.3.0
+    "@fontsource/ibm-plex-mono": 5.3.0
     class-variance-authority: 0.7.1
     cn: 0.5.2
+    onnxruntime-web: 1.31.1
     react: 19.3.1
     react-dom: 19.3.1
     tailwindcss: 4.3.4
@@ -139,6 +144,10 @@ catalogs:
     oxlint: 1.92.0
     oxlint-plugin-react-doctor: 0.9.22
     oxlint-tsgolint: 7.0.2006
+  mcp:
+    "@tmcp/adapter-arktype": ^0.2.4
+    "@tmcp/transport-http": ^0.9.1
+    tmcp: ^1.20.1
   node26:
     "@types/node": ^26.6.6
   opencode2:
@@ -179,6 +188,7 @@ catalogs:
     "@tanstack/react-router-devtools": 1.167.2
     "@tanstack/react-router-ssr-query": 1.167.3
     "@tanstack/react-start": 1.169.4
+    "@tanstack/redact": 0.3.1
   test:
     "@vitest/coverage-istanbul": 5.1.0
     "@vitest/coverage-v8": 5.1.0
@@ -215,6 +225,7 @@ catalogs:
     "@vitejs/plugin-react": 6.2.1
     nitro: 3.0.261103-rc
   web:
+    "@openrouter/sdk": ^1.5.68
     "@orpc/tanstack-query": ^1.13.6
     "@rolldown/plugin-babel": ^0.2.3
     "@tailwindcss/typography": ^0.5.16

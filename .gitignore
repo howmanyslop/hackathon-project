@@ -27,6 +27,7 @@ storybook-static
 .dev.vars*
 coverage/
 playwright-report/
+.playwright-mcp/
 test-results/
 **/*.tsbuildinfo
 
@@ -161,3 +162,8 @@ lerna-debug.log*
 .agents/skills/chief-of-staff
 .agents/skills/setup-ts-deep-modules
 .agents/skills/tailscale
+.agents/skills/choreograph
+.agents/skills/gestures
+
+# The on-device speech model (27 MB). `nr --filter @web-template/web speech-model:fetch` downloads it.
+apps/web/public/models/

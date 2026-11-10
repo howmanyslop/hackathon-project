@@ -1,20 +1,79 @@
-# web-template
+# Asked & Answered
 
-A starting point for web projects: TanStack Start on Node, deployed to a Kubernetes cluster, in a pnpm and Turborepo monorepo with strict linting, git hooks, and agent setup.
+The Q&A at the end of a talk is often the best part, and it's gone the moment the talk ends. Asked & Answered keeps it. The presenter's phone turns the talk into text as they speak. The app splits the Q&A part into question-and-answer pairs, and everything lands in one archive you can search by meaning. During the conference, attendees can check whether their question was already asked. Afterward, people and their AI agents can search every session and jump to the passage.
 
-## Start a Project
+Only text reaches the server. The phone's browser does the speech-to-text (Chrome uses Google's speech service for it), and no audio or video is stored. A browser with no speech-to-text of its own downloads a small model from the app and runs it on the phone instead; before a deploy from a fresh clone, `nr --filter '@web-template/web' speech-model:fetch` puts that model in place.
+
+## Pages
+
+| Route            | What it shows                                                                                   |
+| ---------------- | ----------------------------------------------------------------------------------------------- |
+| `/`              | The archive: search, the Ask box, the hourly "what people are asking" note, and counts.        |
+| `/sessions`      | Every session, newest first.                                                                    |
+| `/sessions/$id`  | One session: its pairs and transcript. `?t=<seconds>` jumps to a passage.                       |
+| `/questions`     | What attendees typed into the archive, unanswered ones first. Needs the presenter code.         |
+| `/record`        | The presenter's recorder, for a phone. Needs the presenter code.                                |
+| `/mcp`           | A read-only MCP endpoint for AI agents (not a page).                                            |
+
+Every question typed into the search field or the Ask box is saved to the `question_log` table with no name attached, along with whether the archive already had an answered question for it. Presenters open Questions with the presenter code to see what people want to know, with the unanswered ones set apart, so they can cover those in their talk. It needs the code because strangers write that text, and it is never shown on a public page.
+
+## Run It Locally
 
 ```sh
-cp -R ~/GitHub/web-template ~/GitHub/my-project
-cd ~/GitHub/my-project
 mise trust && mise install
-mise run init my-project      # rename, fresh git history, install, hooks
-node --run dev
+pnpm install
+mise run dev                  # forwards the cluster's Postgres, then starts the dev server
 ```
 
-`apps/web` is a working app (Postgres through Drizzle, oRPC, TanStack Query, shadcn on Base UI, Storybook). `apps/web/README.md` covers running it locally. `turbo gen website` adds another app, though its templates still target Cloudflare Workers.
+`mise run dev` reads the database password and the presenter code from the cluster, so `.env` needs neither. To run the two steps yourself, use `mise run k8s:db` in one terminal and `node --run dev` in another, with `DATABASE_URL` set as that task prints.
 
-`AGENTS.md` describes the commands, the generators, and the conventions.
+`apps/web/README.md` has the details, and `AGENTS.md` describes the commands and conventions.
+
+## Settings
+
+Put these in `.env` for local work. `mise run k8s:deploy` copies the Elastic, Kibana, OpenRouter, and tunnel values into Kubernetes Secrets, and makes a random presenter code for the cluster. The cluster uses the defaults for the rest.
+
+| Variable                       | Default                                       | What it's for                                                         |
+| ------------------------------ | --------------------------------------------- | --------------------------------------------------------------------- |
+| `PRESENTER_CODE`               | none                                          | The shared code for `/record`. Unset means no recording.              |
+| `ELASTICSEARCH_URL`            | none                                          | Elastic project endpoint.                                             |
+| `ELASTICSEARCH_API_KEY`        | none                                          | Elastic API key, also used for Kibana.                                |
+| `KIBANA_URL`                   | `ELASTICSEARCH_URL` with `.es.` as `.kb.`     | Agent Builder and Workflows.                                          |
+| `ELASTICSEARCH_ARCHIVE_INDEX`  | `asked-archive`                               | Search index for segments and pairs.                                  |
+| `ELASTICSEARCH_DIGEST_INDEX`   | `asked-digest`                                | Where the hourly note is written.                                     |
+| `ELASTIC_LLM_INFERENCE_ID`     | `.anthropic-claude-5-sonnet-chat_completion`  | Elastic's LLM, tried first for the split. It answers 403 here today.  |
+| `ELASTIC_AGENT_ID`             | `asked-and-answered`                          | The Agent Builder agent behind the Ask box.                           |
+| `ASK_BUDGET_USD`               | `15`                                          | The most the Ask box may spend on the agent. `0` turns it off.        |
+| `ASK_COST_ESTIMATE_USD`        | `0.10`                                        | Cost logged per question when the agent reports no token usage.      |
+| `OPENROUTER_API_KEY`           | none (optional)                               | The LLM that splits the Q&A when Elastic's fails, which it does now.  |
+| `OPENROUTER_MODEL`             | `anthropic/claude-haiku-5.5`                  | The OpenRouter model.                                                 |
+| `CLOUDFLARE_TUNNEL_TOKEN`      | none (optional)                               | The named tunnel. Without it, a temporary `trycloudflare.com` address. |
+
+### The Ask Box's Limits
+
+Each question in the Ask box goes to a paid Elastic agent. The app writes every question to the `ask_log` table before sending it, so all three replicas share one count:
+
+- More than 10 questions in a minute: "The archive is answering a lot of questions right now. Try again in a minute."
+- Once the logged cost reaches `ASK_BUDGET_USD`: "The Ask box has used its budget for now. Search still works."
+
+The cost of a question comes from the token usage the agent reports, priced at $6 per million input tokens and $30 per million output tokens, about twice the list price of its model. When it reports none, the question costs `ASK_COST_ESTIMATE_USD`. The $15 default plus the digest workflow's own cap (at most 50 paid runs, about $5) keeps the agent under $20 in all.
+
+## Sample Data and Elastic Setup
+
+```sh
+mise run elastic:setup             # create the indices, the agent and its tools, and the digest workflow (safe to rerun)
+mise run seed -- <url>             # push the sample talks in apps/web/seed/ through the real recording calls
+```
+
+The sample talks are invented, and their titles end in "(sample)".
+
+## Connect an AI Agent
+
+```sh
+claude mcp add -t http asked <url>/mcp
+```
+
+The agent gets three read-only tools: `search_archive`, `list_sessions`, and `get_session`. Any of the three replicas can answer any request, because the endpoint keeps nothing a later request needs (see `docs/adr/0002-mcp-route-outside-orpc.md`).
 
 ## Deploy to the Cluster
 
@@ -52,9 +111,10 @@ This builds the app into a container image, scans it for secrets, pushes it to `
 ### Words You'll See
 
 - **Image**: the app packed with everything it needs to run. Built by `docker`, stored on `ghcr.io`.
-- **Pod**: one running copy of the app. There are two, on different machines, so one can crash without taking the site down.
+- **Pod**: one running copy of the app. There are three, on different machines, so one can crash without taking the site down.
 - **Namespace**: a folder in the cluster. Everything here lives in `web`, apart from other teams' work.
-- **Secret**: where the database password lives. It's made inside the cluster on the first deploy and never written to this repository.
+- **Secret**: where passwords and keys live, like the database password and the presenter code. They're made inside the cluster by `k8s:deploy` and never written to this repository.
+- **Tunnel**: a `cloudflared` pod in the `web` namespace. It gives the app a public HTTPS address, which phones need before they allow the microphone.
 
 ### Keep Secrets Out
 
@@ -71,7 +131,7 @@ The images on `ghcr.io` are public, and so is this repository. Never put a passw
 | Service                | What It Does Here                                                          | State                                         |
 | ---------------------- | -------------------------------------------------------------------------- | --------------------------------------------- |
 | Radar                  | Shows the cluster in a browser and lets agents inspect it over MCP.        | Agent runs in the `radar` namespace.          |
-| Elastic                | Semantic search over the todos, embedded by Jina.                          | Needs keys in `.env`.                         |
+| Elastic                | Search by meaning, the Ask box agent, and the hourly digest Workflow.      | Needs keys in `.env`, then `elastic:setup`.   |
 | Dash0                  | Traces, logs, and metrics for the app.                                     | Needs keys in `.env`, then `dash0:install`.   |
 | Gitar (Sonar)          | Reviews every pull request. `.gitar/review/project.md` says what to check. | Installed on the GitHub organization.         |
 
@@ -85,12 +145,11 @@ The cluster is already connected. To use it:
 ### Elastic
 
 1. Sign up at <https://ela.st/hack-kubecon> and create an **Elasticsearch** project ("Build AI and semantic search").
-2. On the project's page, copy the Elasticsearch endpoint and create an API key. Put them in `.env` as `ELASTICSEARCH_URL` and `ELASTICSEARCH_API_KEY`, and set `ELASTICSEARCH_TODO_INDEX` to `todos-dev-<your name>` so your laptop doesn't overwrite the cluster's todos.
-3. `mise run k8s:deploy` copies the keys into the cluster's `web-elastic` Secret.
+2. On the project's page, copy the Elasticsearch endpoint and create an API key. Put them in `.env` as `ELASTICSEARCH_URL` and `ELASTICSEARCH_API_KEY`. Set `ELASTICSEARCH_ARCHIVE_INDEX` to something like `asked-archive-dev-<your name>` so your laptop doesn't write into the cluster's index. The agent's tools and the digest only read `asked-archive`.
+3. `mise run elastic:setup` creates the indices, the Agent Builder agent and its tools, and the digest workflow. `--run-workflow` also runs the digest once.
+4. `mise run k8s:deploy` copies the keys into the cluster's `web-elastic` Secret.
 
-When the app starts with these set, it creates a Jina inference endpoint (`jina-embeddings-v3` on the Elastic Inference Service) and the todo index. If the index is new, it copies every todo into it. After that, `addTodo` indexes each new todo, and the search box on the home page calls `searchTodos`. Postgres stays the source of truth. Without the keys, the app runs as before and search reports that it isn't set up.
-
-Agent Builder and Workflows live in Kibana, so build them there once the data model settles.
+The app indexes each segment as it arrives and each pair after a split, using the preconfigured `.jina-embeddings-v5-text-small` endpoint. Postgres stays the source of truth. Without the keys, recording still works and search reports that it isn't set up.
 
 ### Dash0
 

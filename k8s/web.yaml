@@ -46,6 +46,35 @@ spec:
                   name: web-elastic
                   key: api-key
                   optional: true
+            # Kibana, for the Agent Builder agent behind the Ask box. Optional:
+            # without it the app derives Kibana's address from the URL above.
+            - name: KIBANA_URL
+              valueFrom:
+                secretKeyRef:
+                  name: web-elastic
+                  key: kibana-url
+                  optional: true
+            # The shared code presenters type to record a talk. `k8s:deploy`
+            # creates a random one; without it the app refuses to record.
+            - name: PRESENTER_CODE
+              valueFrom:
+                secretKeyRef:
+                  name: web-presenter
+                  key: code
+            # OpenRouter, the fallback when Elastic's model can't split a talk
+            # into questions and answers. Optional, like the Secret.
+            - name: OPENROUTER_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: web-llm
+                  key: api-key
+                  optional: true
+            - name: OPENROUTER_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: web-llm
+                  key: model
+                  optional: true
           # `mise run k8s:deploy` replaces this tag with the commit it built.
           image: ghcr.io/howmanyslop/web:latest
           imagePullPolicy: IfNotPresent

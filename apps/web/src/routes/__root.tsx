@@ -4,6 +4,8 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 
+import { PageShell } from "$components/page-shell";
+
 import queryDevtools from "../integrations/tanstack-query/devtools";
 
 import appCss from "../styles.css?url";
@@ -37,11 +39,17 @@ function RootDocument({ children }: Readonly<PropsWithChildren>): ReactNode {
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+	component: PageShell,
 	head: () => ({
 		links: [
 			{
 				href: appCss,
 				rel: "stylesheet",
+			},
+			{
+				href: "/favicon.svg",
+				rel: "icon",
+				type: "image/svg+xml",
 			},
 		],
 		meta: [
@@ -54,7 +62,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "web",
+				title: "Asked & Answered",
+			},
+			{
+				name: "description",
+				content: "Every question asked at the conference, with its answer, in one searchable archive.",
 			},
 		],
 	}),
