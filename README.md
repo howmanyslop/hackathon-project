@@ -6,13 +6,13 @@ Only text reaches the server. The phone's browser does the speech-to-text (Chrom
 
 ## The Cluster
 
-The app runs on a small physical k3s cluster: four mini PCs stacked together and wrapped in LED string lights, with a gigabit switch on top and a fan on the side. One machine is the control node and gateway; the other three are workers.
+The app runs on a small physical k3s cluster: four mini PCs stacked together and wrapped in LED string lights, with a gigabit switch on top. One machine is the control node and gateway; the other three are workers.
 
 | ![The four-machine stack from the front, wrapped in green lights, with the network switch on top.](docs/images/cluster-stack.jpg) | ![The stack from above with cables and power banks around it.](docs/images/cluster-cables.jpg) |
 | :---: | :---: |
 | **The stack.** Four mini PCs, all lights green. | **The cabling.** Power and network, all on one desk. |
-| ![One machine's light strip turned red for a severe, active issue reported by the Radar API, while the others stay green.](docs/images/cluster-error.jpg) | ![The lights blinking, with one strip showing red.](docs/images/cluster-blink.gif) |
-| **A single error.** One strip turns red while the rest stay green. The red strip marks a severe, active issue, and the error is pulled from the Radar API. | **Blinking.** The lights in motion, with the same red strip for a severe, active issue from the Radar API. |
+| ![One machine's light strip turned red for a severe, active issue on that node reported by Radar, while the others stay green.](docs/images/cluster-error.jpg) | ![The lights blinking, with one strip showing red.](docs/images/cluster-blink.gif) |
+| **A single error.** One strip turns red while the rest stay green. The red strip is a severe, active issue for that node, pulled from the Radar API. | **Blinking.** The lights in motion, with the same red strip: a severe, active issue for that node, from Radar. |
 
 ## Pages
 
